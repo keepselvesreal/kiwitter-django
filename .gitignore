@@ -1,0 +1,8 @@
+node_modules
+venv
+myenv
+temp
+.idea
+kiwitter
+vite-project
+kiwitter_frontend/node_modules
