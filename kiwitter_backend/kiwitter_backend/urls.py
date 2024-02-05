@@ -30,8 +30,13 @@ from tweets.views import (
     # bookmark_tweet, 
     # remove_bookmark_tweet,
     toggle_like,
+    is_liked,
     toggle_bookmark,
+    is_bookmarked,
     list_bookmarked_tweets,
+    user_tweets,
+    user_comments,
+    user_liked_tweets,
 )
 from users.views import follow, unfollow, get_user
 from chats.consumer import ChatConsumer
@@ -64,8 +69,13 @@ urlpatterns = [
     # path('api/tweets/<int:tweet_id>/bookmark/', bookmark_tweet, name='bookmark-tweet'),
     # path('api/tweets/<int:tweet_id>/unbookmark/', remove_bookmark_tweet, name='unbookmark-tweet'),
     path('api/tweets/<int:tweet_id>/toggle_like/', toggle_like, name='toggle-like'),
+    path('api/tweets/<int:tweet_id>/is_liked/', is_liked, name="is-liked"),
     path('api/tweets/<int:tweet_id>/toggle_bookmark/', toggle_bookmark, name='toggle-bookmark'),
+    path('api/tweets/<int:tweet_id>/is_bookmarked/', is_bookmarked, name="is-bookmarked"),
     path('api/bookmarks/', list_bookmarked_tweets, name='list_bookmarked_tweets'),
+    path('api/user-tweets/', user_tweets, name='user-tweets'),
+    path('api/user-comments/', user_comments, name='user-comments'),
+    path('api/user-liked-tweets/', user_liked_tweets, name='user-liked-tweets'),
 ]
 
 websocket_urlpatterns = [

@@ -96,44 +96,27 @@ def tags(request, tag_name):
     serializer = TweetSerializer(tweets, many=True)
     return Response(serializer.data)
 
-
-# @api_view(['POST'])
-# # @permission_classes([IsAuthenticated])
-# def like_tweet(request, tweet_id):
-#     user = request.user
-#     try:
-#         tweet = Tweets.objects.get(id=tweet_id)
-#         if user in tweet.likes.all():
-#             return JsonResponse({'error': 'You already liked this tweet'}, status=400)
-#         tweet.likes.add(user)
-#         return JsonResponse({'message': 'Tweet liked successfully'}, status=200)
-#     except Tweets.DoesNotExist:
-#         return JsonResponse({'error': 'Tweet not found'}, status=404)
-
-# @api_view(['POST'])
-# # @permission_classes([IsAuthenticated])
-# def unlike_tweet(request, tweet_id):
-#     user = request.user
-#     try:
-#         tweet = Tweets.objects.get(id=tweet_id)
-#         if user not in tweet.likes.all():
-#             return JsonResponse({'error': 'You have not liked this tweet'}, status=400)
-#         tweet.likes.remove(user)
-#         return JsonResponse({'message': 'Tweet unliked successfully'}, status=200)
-#     except Tweets.DoesNotExist:
-#         return JsonResponse({'error': 'Tweet not found'}, status=404)
-
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def toggle_like(request, tweet_id):
     """특정 트윗의 좋아요를 추가하거나 삭제합니다."""
     tweet = get_object_or_404(Tweets, pk=tweet_id)
-    if tweet.likes.filter(pk=request.user.pk).exists():
+    is_liked = request.user in tweet.likes.all()
+    if is_liked:
         tweet.likes.remove(request.user)
-        return Response({"status": "like removed"})
+        is_liked = False
     else:
         tweet.likes.add(request.user)
-        return Response({"status": "like added"})
+        is_liked = True
+    return Response({"status": "toggled", "is_liked": is_liked})
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def is_liked(request, tweet_id):
+    """사용자가 특정 트윗에 좋아요를 눌렀는지 확인합니다."""
+    tweet = get_object_or_404(Tweets, pk=tweet_id)
+    is_liked = tweet.likes.filter(pk=request.user.pk).exists()
+    return Response({"is_liked": is_liked})
 
 @api_view(['GET'])
 def get_tweet_likes_count(request, tweet_id):
@@ -149,38 +132,28 @@ def get_tweet_likes_count(request, tweet_id):
         return JsonResponse(tweet_data, status=200)
     except Tweets.DoesNotExist:
         return JsonResponse({'error': 'Tweet not found'}, status=404)
-
-# @api_view(['POST'])
-# def bookmark_tweet(request, tweet_id):
-#     user = request.user
-#     try:
-#         tweet = Tweets.objects.get(id=tweet_id)
-#         tweet.bookmarks.add(user)
-#         return JsonResponse({'message': 'Tweet bookmarked successfully'}, status=200)
-#     except Tweets.DoesNotExist:
-#         return JsonResponse({'error': 'Tweet not found'}, status=404)
-
-# @api_view(['POST'])
-# def remove_bookmark_tweet(request, tweet_id):
-#     user = request.user
-#     try:
-#         tweet = Tweets.objects.get(id=tweet_id)
-#         tweet.bookmarks.remove(user)
-#         return JsonResponse({'message': 'Tweet bookmark removed successfully'}, status=200)
-#     except Tweets.DoesNotExist:
-#         return JsonResponse({'error': 'Tweet not found'}, status=404)
     
 @api_view(['POST'])
 # @permission_classes([IsAuthenticated])
 def toggle_bookmark(request, tweet_id):
     """특정 트윗의 북마크를 추가하거나 삭제합니다."""
     tweet = get_object_or_404(Tweets, pk=tweet_id)
-    if request.user.bookmarked_tweets.filter(pk=tweet_id).exists():
+    is_bookmarked = request.user.bookmarked_tweets.filter(pk=tweet_id).exists()
+    if is_bookmarked:
         request.user.bookmarked_tweets.remove(tweet)
-        return Response({"status": "bookmark removed"})
+        is_bookmarked = False
     else:
         request.user.bookmarked_tweets.add(tweet)
-        return Response({"status": "bookmark added"})
+        is_bookmarked = True
+    return Response({"status": "toggled", "is_bookmarked": is_bookmarked})
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def is_bookmarked(request, tweet_id):
+    """사용자가 특정 트윗을 북마크했는지 확인합니다."""
+    tweet = get_object_or_404(Tweets, pk=tweet_id)
+    is_bookmarked = request.user.bookmarked_tweets.filter(pk=tweet_id).exists()
+    return Response({"is_bookmarked": is_bookmarked})
 
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
@@ -190,6 +163,26 @@ def list_bookmarked_tweets(request):
     serializer = TweetSerializer(bookmarked_tweets, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def user_tweets(request):
+    tweets = Tweets.objects.filter(author=request.user).order_by('-created_at')
+    serializer = TweetSerializer(tweets, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def user_comments(request):
+    comments = Comments.objects.filter(author=request.user).order_by('-created_at')
+    serializer = CommentSerializer(comments, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def user_liked_tweets(request):
+    liked_tweets = request.user.liked_tweets.all().order_by('-created_at')
+    serializer = TweetSerializer(liked_tweets, many=True)
+    return Response(serializer.data)
 
 # class CommentViewSet(viewsets.ModelViewSet):
 #     queryset = Comments.objects.all()

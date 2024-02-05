@@ -2,12 +2,18 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { TextField, Button, Box, Avatar, Typography } from '@mui/material';
 
+import { useUserContext } from './UserContext';
+
 const Profile = ({ userId }) => {
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [username, setUsername] = useState('');
   const [shortDescription, setShortDescription] = useState('');
   const [profileImage, setProfileImage] = useState(null);
+  const [tweets, setTweets] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [likedTweets, setLikedTweets] = useState([]);
+  const authToken = localStorage.getItem('token'); // user 변수명이 위에서 사용 중이라 일단 브라우저 저장소에서 직접 토큰을 가져옴
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -25,6 +31,25 @@ const Profile = ({ userId }) => {
 
     fetchUser();
   }, [userId, editMode]);
+
+  useEffect(() => {
+      const fetchTweets = async () => {
+          const response = await axios.get(`http://localhost:8000/api/user-tweets/`, { headers: { 'Authorization': `Token ${authToken}` } });
+          setTweets(response.data);
+      };
+      const fetchComments = async () => {
+          const response = await axios.get(`http://localhost:8000/api/user-comments/`, { headers: { 'Authorization': `Token ${authToken}` } });
+          setComments(response.data);
+      };
+      const fetchLikedTweets = async () => {
+          const response = await axios.get(`http://localhost:8000/api/user-liked-tweets/`, { headers: { 'Authorization': `Token ${authToken}` } });
+          setLikedTweets(response.data);
+      };
+
+      fetchTweets();
+      fetchComments();
+      fetchLikedTweets();
+  }, [userId]);
 
   const handleSave = async () => {
     const formData = new FormData();
@@ -72,6 +97,20 @@ const Profile = ({ userId }) => {
             Edit Profile
           </Button>
           <Typography sx={{ mt: 1 }}>팔로우 중인 사용자 아이디: {user.following_ids.join(', ')}</Typography>
+          <Typography variant="h6">작성 트윗</Typography>
+            {tweets.map(tweet => (
+                <Typography key={tweet.id}>{tweet.content}</Typography>
+            ))}
+
+            <Typography variant="h6">작성 댓글</Typography>
+            {comments.map(comment => (
+                <Typography key={comment.id}>{comment.content}</Typography>
+            ))}
+
+            <Typography variant="h6">좋아요 누른 글</Typography>
+            {likedTweets.map(tweet => (
+                <Typography key={tweet.id}>{tweet.content}</Typography>
+            ))}
         </Box>
       )}
     </Box>

@@ -9,7 +9,6 @@ export default function Timeline() {
     const [tweets, setTweets] = useState([]);
     const { user } = useUserContext();
     const authToken = user?.token;
-    // const authToken = localStorage.getItem('token');
 
     useEffect(() => {
         const fetchTweets = async () => {

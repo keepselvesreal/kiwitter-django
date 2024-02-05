@@ -20,11 +20,32 @@ function Tweet({ author, content, id }) {
     const [isBookmarked, setIsBookmarked] = useState(false);
     const { user } = useUserContext();
     const authToken = user?.token;
-
-    // const authToken = localStorage.getItem('token'); // localStorage에서 토큰 가져오기
     
     const authorName = author ? author.username : 'Unknown';
     const profileImageUrl = author ? author.profileImageUrl : ''; // 유저 프로필 이미지 URL을 이 변수에 할당
+
+
+    // 컴포넌트 마운트 시 사용자의 좋아요 및 북마크 상태 확인
+    useEffect(() => {
+        // 좋아요 상태 확인
+        const fetchLikeStatus = async () => {
+            const response = await axios.get(`http://localhost:8000/api/tweets/${id}/is_liked/`, {
+                headers: { 'Authorization': `Token ${authToken}` },
+            });
+            setIsLiked(response.data.is_liked);
+        };
+
+        // 북마크 상태 확인
+        const fetchBookmarkStatus = async () => {
+            const response = await axios.get(`http://localhost:8000/api/tweets/${id}/is_bookmarked/`, {
+                headers: { 'Authorization': `Token ${authToken}` },
+            });
+            setIsBookmarked(response.data.is_bookmarked);
+        };
+
+        fetchLikeStatus();
+        fetchBookmarkStatus();
+    }, [id, authToken]);
     
 
     const onDelete = async () => {
@@ -114,38 +135,24 @@ function Tweet({ author, content, id }) {
         }
     };
 
-    // // 좋아요 버튼 클릭 핸들러
-    // const handleLike = async () => {
+    // const toggleLike = async () => {
     //     try {
-    //         await axios.post(`http://localhost:8000/api/tweets/${id}/like/`, {}, {
+    //         await axios.post(`http://localhost:8000/api/tweets/${id}/toggle_like/`, {}, {
     //             headers: { 'Authorization': `Token ${authToken}` },
     //         });
+    //         setIsLiked(!isLiked);
     //         fetchLikesCount(); // 좋아요 수 갱신
     //     } catch (error) {
-    //         console.error('Error liking tweet', error);
+    //         console.error('Error toggling like', error);
     //     }
     // };
-
-    // // 좋아요 취소 버튼 클릭 핸들러
-    // const handleUnlike = async () => {
-    //     try {
-    //         await axios.post(`http://localhost:8000/api/tweets/${id}/unlike/`, {}, {
-    //             headers: { 'Authorization': `Token ${authToken}` },
-    //         });
-    //         fetchLikesCount(); // 좋아요 수 갱신
-    //     } catch (error) {
-    //         console.error('Error unliking tweet', error);
-    //     }
-    // };
-    // 좋아요 및 북마크 토글 이벤트 핸들러
-    // 좋아요 및 북마크 토글 이벤트 핸들러
     const toggleLike = async () => {
         try {
             await axios.post(`http://localhost:8000/api/tweets/${id}/toggle_like/`, {}, {
                 headers: { 'Authorization': `Token ${authToken}` },
             });
-            setIsLiked(!isLiked);
-            fetchLikesCount(); // 좋아요 수 갱신
+            setIsLiked(!isLiked); // 좋아요 상태 토글
+            fetchLikesCount(); // 좋아요 수 갱신을 호출
         } catch (error) {
             console.error('Error toggling like', error);
         }
@@ -163,36 +170,26 @@ function Tweet({ author, content, id }) {
         }
     };
 
-    // const handleBookmark = async () => {
+    // const toggleBookmark = async () => {
     //     try {
-    //         await axios.post(`http://localhost:8000/api/tweets/${id}/bookmark/`, {}, {
+    //         await axios.post(`http://localhost:8000/api/tweets/${id}/toggle_bookmark/`, {}, {
     //             headers: { 'Authorization': `Token ${authToken}` },
     //         });
-    //         setIsBookmarked(true); // 북마크 상태 업데이트
+    //         setIsBookmarked(!isBookmarked); // 북마크 상태 토글
     //     } catch (error) {
-    //         console.error('Error bookmarking tweet', error);
+    //         console.error('Error toggling bookmark', error);
     //     }
     // };
-    
-    // const handleRemoveBookmark = async () => {
-    //     try {
-    //         await axios.post(`http://localhost:8000/api/tweets/${id}/remove_bookmark/`, {}, {
-    //             headers: { 'Authorization': `Token ${authToken}` },
-    //         });
-    //         setIsBookmarked(false); // 북마크 상태 업데이트
-    //     } catch (error) {
-    //         console.error('Error removing bookmark', error);
-    //     }
-    // };
-
     const toggleBookmark = async () => {
         try {
-            await axios.post(`http://localhost:8000/api/tweets/${id}/toggle_bookmark/`, {}, {
+            // 좋아요 토글 요청
+            const response = await axios.post(`http://localhost:8000/api/tweets/${id}/toggle_bookmark/`, {}, {
                 headers: { 'Authorization': `Token ${authToken}` },
             });
-            setIsBookmarked(!isBookmarked); // 북마크 상태 토글
+            // 응답으로부터 isLiked 상태 업데이트
+            setIsBookmarked(response.data.is_bookmarked);
         } catch (error) {
-            console.error('Error toggling bookmark', error);
+            console.error('Error toggling like', error);
         }
     };
 
@@ -254,12 +251,6 @@ function Tweet({ author, content, id }) {
                         <Typography variant="body1">{linkifyHashtags(content)}</Typography>
                         <Button onClick={onDelete}>Delete</Button>
                         <Button onClick={onEdit}>Edit</Button>
-                        {/* 좋아요 버튼과 좋아요 수 표시 */}
-                        {/* <Button onClick={handleLike}>좋아요</Button>
-                        <Button onClick={handleUnlike}>좋아요 취소</Button>
-                        <Button onClick={isBookmarked ? handleRemoveBookmark : handleBookmark}>
-                            {isBookmarked ? '북마크 해제' : '북마크'}
-                        </Button> */}
                         <Button onClick={toggleBookmark}>{isBookmarked ? '북마크 해제' : '북마크'}</Button>
                         <Button onClick={toggleLike}> {isLiked ? '좋아요 취소': '좋아요'}</Button>
                         <Typography variant="body2">좋아요 {likesCount}명</Typography>
