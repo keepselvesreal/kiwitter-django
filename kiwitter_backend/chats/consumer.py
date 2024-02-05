@@ -34,39 +34,19 @@ class ChatConsumer(JsonWebsocketConsumer):
         print("message: ", message)
         print("new_message : ", new_message)
 
-        # 채팅방의 모든 메시지를 조회
-        time_unit = content.get("time_unit", "week")
-        time_period = int(content.get("time_period", 1))
-        if time_unit == "week":
-            time_delta = timedelta(weeks=time_period)
-        elif time_unit == "day":
-            time_delta = timedelta(days=time_period)
-        elif time_unit == "minute":
-            time_delta = timedelta(minutes=time_period)
-        else:
-            time_delta = timedelta(days=7)  # 기본값은 7일
+        # 새 메시지를 JSON으로 변환합니다.
+        new_message_json = {
+            "username": new_message.sender.username,
+            "message": new_message.content,
+            "created_at": new_message.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        }
 
-        start_time = timezone.now() - time_delta
-        messages = Message.objects.filter(
-            conversation=conversation,
-            timestamp__gte=start_time
-        ).values(
-            'sender__username',
-            'content',
-            'timestamp'
-        )
-        messages_list = [
-            {"username": msg['sender__username'],
-             "message": msg['content'],
-             "created_at": msg["timestamp"].strftime("%Y-%m-%d %H:%M:%S")
-             }
-            for msg in messages]
-
+        # 새 메시지만 클라이언트에 전송합니다.
         async_to_sync(self.channel_layer.group_send)(
             self.conver_id,
             {
                 'type': 'chat_message',
-                'messages': messages_list
+                'message': new_message_json
             }
         )
         
@@ -74,7 +54,7 @@ class ChatConsumer(JsonWebsocketConsumer):
     def chat_message(self, event):
         print("chat_message 메소드 진입")
         print("event : ", event)
-        self.send_json(event['messages'])
+        self.send_json(event['message'])
 
 
     def disconnect(self, close_code):

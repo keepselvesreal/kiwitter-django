@@ -68,61 +68,44 @@ export default function Chat() {
     }, [selectedChatId]);
 
     useEffect(() => {
-        if (selectedChatId) {
-          const user = JSON.parse(localStorage.getItem('user'));
-          const ws = new WebSocket(`ws://127.0.0.1:8000/${selectedChatId}`);
-      
-          ws.onopen = () => {
-            console.log('WebSocket Connected');
-          };
-      
-          ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log('Message from WebSocket: ', data);
-            if (Array.isArray(data)) {
-              setConversations(prevConversations => {
-                const currentConversation = prevConversations.find(conv => conv.conversation_id === selectedChatId);
-                const currentMessages = currentConversation ? currentConversation.messages : [];
-      
-                // 이미 상태에 있는 메시지들의 created_at 값을 기반으로 하여 가장 최근 메시지를 찾습니다.
-                const lastMessageDate = currentMessages.length > 0
-                  ? new Date(currentMessages[currentMessages.length - 1].created_at).getTime()
-                  : 0;
-      
-                // 새로운 메시지들만 필터링합니다.
-                const newMessages = data.filter(msg => new Date(msg.created_at).getTime() > lastMessageDate);
-      
-                // 새로운 메시지들을 현재 대화에 추가합니다.
-                const updatedConversations = prevConversations.map(conv => {
-                  if (conv.conversationid === selectedChatId) {
-                    // currentConversation이 undefined가 아닌지 확인합니다.
-                    const currentConversation = prevConversations.find(conv => conv.conversation_id === selectedChatId) || {};
-                    // currentMessages가 배열인지 확인하고, 그렇지 않다면 빈 배열을 사용합니다.
-                    const currentMessages = currentConversation.messages || [];
-                    return { ...conv, messages: [...currentMessages, ...newMessages] };
-                  }
-                  return conv;
-                });
-      
-                return updatedConversations;
-              });
-            } else {
-              console.log('Received data is not an array of messages:', data);
-            }
-          };
-      
-          ws.onerror = (error) => {
-            console.error('WebSocket error: ', error);
-          };
-      
-          ws.onclose = () => {
-            console.log('WebSocket disconnected');
-          };
-      
-          setWs(ws);
-          return () => ws.close();
-        }
-      }, [selectedChatId]);
+      if (selectedChatId) {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const ws = new WebSocket(`ws://127.0.0.1:8000/${selectedChatId}`);
+    
+        ws.onopen = () => {
+          console.log('WebSocket Connected');
+        };
+    
+        ws.onmessage = (event) => {
+          const newMessage = JSON.parse(event.data);
+          console.log('Message from WebSocket: ', newMessage);
+        
+          setConversations(prevConversations => {
+            return prevConversations.map(conv => {
+              if (conv.conversation_id === selectedChatId) {
+                // 새 메시지를 메시지 목록에 추가합니다.
+                return {
+                  ...conv,
+                  messages: [...conv.messages, newMessage]
+                };
+              }
+              return conv;
+            });
+          });
+        };
+    
+        ws.onerror = (error) => {
+          console.error('WebSocket error: ', error);
+        };
+    
+        ws.onclose = () => {
+          console.log('WebSocket disconnected');
+        };
+    
+        setWs(ws);
+        return () => ws.close();
+      }
+    }, [selectedChatId]);    
       
 
   // 새 참가자 추가
@@ -210,8 +193,8 @@ function formatDate(dateStr) {
   // 마지막 메시지의 timestamp를 비교하여 정렬합니다.
   const lastMessageA = a.messages && a.messages[a.messages.length - 1];
   const lastMessageB = b.messages && b.messages[b.messages.length - 1];
-  const lastTimestampA = lastMessageA ? new Date(lastMessageA.timestamp).getTime() : 0;
-  const lastTimestampB = lastMessageB ? new Date(lastMessageB.timestamp).getTime() : 0;
+  const lastTimestampA = lastMessageA ? new Date(lastMessageA.created_at).getTime() : 0;
+  const lastTimestampB = lastMessageB ? new Date(lastMessageB.created_at).getTime() : 0;
 
   return lastTimestampB - lastTimestampA;
 });
@@ -254,9 +237,9 @@ function formatDate(dateStr) {
           <>
             <h2>대화방: {conversations.find(conv => conv.conversation_id.toString() === selectedChatId.toString()).participants.map(p => p.username).join(', ')}</h2>
             <div className="messages">
-              {conversations.find(conv => conv.conversation_id.toString() === selectedChatId)?.messages.map((msg, index) => (
+              {conversations.find(conv => conv.conversation_id.toString() === selectedChatId)?.messages?.map((msg, index) => (
                 <div key={index} className="message">
-                  {`${msg.sender?.username}: ${msg.content} (${formatDate(msg.timestamp)})`}
+                  {`${msg.username}: ${msg.message} (${formatDate(msg.created_at)})`}
                 </div>
               )) || <div>메시지가 없습니다.</div>}
             </div>
