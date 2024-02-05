@@ -4,6 +4,7 @@ import Comment from './comment'; // 가정: Comment 컴포넌트가 별도 파�
 import { Card, CardContent, Box, Typography, TextField, Button } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
 
+
 function Tweet({ author, content, id }) {
     const [isEditing, setIsEditing] = useState(false);
     const [editedTweet, setEditedTweet] = useState(content);
@@ -11,6 +12,8 @@ function Tweet({ author, content, id }) {
     const [newComment, setNewComment] = useState('');
     const [comments, setComments] = useState([]);
     const [showCommentInput, setShowCommentInput] = useState(false);
+    const [isFollowing, setIsFollowing] = useState(false); // 팔로우 상태
+
     const authToken = localStorage.getItem('token'); // localStorage에서 토큰 가져오기
     
     const authorName = author ? author.username : 'Unknown';
@@ -78,6 +81,32 @@ function Tweet({ author, content, id }) {
         console.log(`Deleted comment ID: ${deletedCommentId}`);
       };
 
+      const handleFollow = async () => {
+        try {
+            const response = await axios.post(`http://localhost:8000/api/follow/${author.id}/`, {}, {
+                headers: { 'Authorization': `Token ${authToken}` }
+            });
+            if (response.status === 201) {
+                setIsFollowing(true); // 팔로우 성공
+            }
+        } catch (error) {
+            console.error('Follow action failed:', error);
+        }
+    };
+    
+    const handleUnfollow = async () => {
+        try {
+            const response = await axios.post(`http://localhost:8000/api/unfollow/${author.id}/`, {}, {
+                headers: { 'Authorization': `Token ${authToken}` }
+            });
+            if (response.status === 204) {
+                setIsFollowing(false); // 언팔로우 성공
+            }
+        } catch (error) {
+            console.error('Unfollow action failed:', error);
+        }
+    };
+
     useEffect(() => {
         if (showComments) {
             axios.get(`http://localhost:8000/tweets/${id}/comments/`, {
@@ -109,6 +138,16 @@ function Tweet({ author, content, id }) {
                     </Box>
                 ) : (
                     <Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
+                            <Button
+                                variant="contained"
+                                size="small"
+                                onClick={isFollowing ? handleUnfollow : handleFollow}
+                                sx={{ marginRight: 'auto' }}
+                            >
+                                {isFollowing ? '언팔로우' : '팔로우'}
+                            </Button>
+                        </Box>
                         <CardContent>
                             <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 1 }}>
                             <Avatar src={profileImageUrl} sx={{ width: 32, height: 32, marginRight: 1 }} />

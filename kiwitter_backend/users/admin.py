@@ -31,6 +31,10 @@ def profile_image_thumbnail(obj):
 class UserAdmin(admin.ModelAdmin):
     list_display = ('username', 'email', 'profile_image_display')  # 프로필 이미지를 보여줄 필드 추가
     readonly_fields = ('profile_image_display',)
+    inlines = [
+        FollowersInline,
+        FollowingInline,
+    ]
 
     def profile_image_display(self, obj):
         return profile_image_thumbnail(obj)
