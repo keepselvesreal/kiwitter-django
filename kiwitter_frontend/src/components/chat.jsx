@@ -85,20 +85,25 @@ export default function Chat() {
         ws.onmessage = (event) => {
           const newMessage = JSON.parse(event.data); // 구조 분해 할당을 사용하여 메시지 추출
           console.log('Message from WebSocket: ', newMessage);
-          console.log("selectedChatId : ", selectedChatId)
-    
+        
           setConversations(prevConversations => {
-            return prevConversations.map(conv => {
+            let isChatUpdated = false;
+            const updatedConversations = prevConversations.map(conv => {
               if (String(conv.conversation_id) === String(selectedChatId)) {
-                // 메시지를 메시지 목록에 추가
-                console.log("Adding new message to conversation: ", newMessage);
+                isChatUpdated = true;
                 return {
                   ...conv,
-                  messages: [...(conv.messages || []), newMessage], // 기존 메시지가 없는 경우를 위해 빈 배열을 기본값으로 설정
+                  messages: [...(conv.messages || []), newMessage],
+                  lastMessageTimestamp: Date.now(), // 메시지 수신 시간을 기록
                 };
               }
               return conv;
             });
+        
+            // 만약 현재 선택된 채팅방에 메시지가 추가되었다면, 목록을 재정렬합니다.
+            return isChatUpdated
+              ? updatedConversations.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
+              : updatedConversations;
           });
         };
     
@@ -180,6 +185,21 @@ export default function Chat() {
     ws.send(dataToSend);
     setMessage('');
   }
+  // 메시지 전송 후, 채팅방 목록을 업데이트합니다.
+  setConversations(prevConversations => {
+    const updatedConversations = prevConversations.map(conv => {
+      if (conv.conversation_id.toString() === selectedChatId) {
+        return {
+          ...conv,
+          lastMessageTimestamp: Date.now(), // 최신 메시지의 타임스탬프를 현재 시간으로 설정
+        };
+      }
+      return conv;
+    });
+
+    // 채팅방 목록을 lastMessageTimestamp 기준으로 정렬합니다.
+    return updatedConversations.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp);
+  });
 };
 
 const handleSelectChat = (chatId) => {
