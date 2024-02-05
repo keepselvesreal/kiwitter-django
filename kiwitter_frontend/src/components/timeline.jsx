@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useUserContext } from './UserContext';
+
 import Tweet from './tweet';
 
 
 export default function Timeline() {
     const [tweets, setTweets] = useState([]);
-    const authToken = localStorage.getItem('token');
+    const { user } = useUserContext();
+    const authToken = user?.token;
+    // const authToken = localStorage.getItem('token');
 
     useEffect(() => {
         const fetchTweets = async () => {

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Comment from './comment'; // 가정: Comment 컴포넌트가 별도 파일로 분리되어 있음
 import { Card, CardContent, Box, Typography, TextField, Button } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
+
+import Comment from './comment'; // 가정: Comment 컴포넌트가 별도 파일로 분리되어 있음
+import { useUserContext } from './UserContext';
 
 
 function Tweet({ author, content, id }) {
@@ -13,8 +15,10 @@ function Tweet({ author, content, id }) {
     const [comments, setComments] = useState([]);
     const [showCommentInput, setShowCommentInput] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false); // 팔로우 상태
+    const { user } = useUserContext();
+    const authToken = user?.token;
 
-    const authToken = localStorage.getItem('token'); // localStorage에서 토큰 가져오기
+    // const authToken = localStorage.getItem('token'); // localStorage에서 토큰 가져오기
     
     const authorName = author ? author.username : 'Unknown';
     const profileImageUrl = author ? author.profileImageUrl : ''; // 유저 프로필 이미지 URL을 이 변수에 할당

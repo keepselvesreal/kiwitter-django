@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Box, TextField, Button } from '@mui/material';
+import { useUserContext } from './UserContext';
 
 function TweetForm() {
   const [message, setMessage] = useState('');
+  const { user } = useUserContext();
+  const authToken = user?.token;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -11,7 +14,7 @@ function TweetForm() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token ${localStorage.getItem('token')}`  // 토큰 사용 예시
+                'Authorization': `Token ${authToken}`  // 토큰 사용 예시
             },
             body: JSON.stringify({ content: message }),
         });
