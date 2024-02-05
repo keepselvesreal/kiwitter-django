@@ -11,6 +11,7 @@ import Register from './pages/register';
 import Login from './pages/login';
 import Layout from "./components/layout";
 import Home from "./components/home";
+import Bookmarks from "./components/bookmarks";
 import Profile from "./components/profile";
 import Chat from "./components/chat";
 
@@ -27,10 +28,10 @@ const router = createBrowserRouter([
         path: "",
         element : <Home />
       },
-      // {
-      //   path:"/bookmarks",
-      //   element: <Bookmarks />
-      // },
+      {
+        path:"/bookmarks",
+        element: <Bookmarks />
+      },
       {
         path:"/chat",
         element: <Chat />

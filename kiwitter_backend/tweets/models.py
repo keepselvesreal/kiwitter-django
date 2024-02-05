@@ -9,6 +9,7 @@ class Tweets(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     likes = models.ManyToManyField(get_user_model(), related_name='liked_tweets', blank=True)
     tags = models.ManyToManyField("tweets.Hashtag", verbose_name="hashtags list", blank=True)
+    bookmarks = models.ManyToManyField(get_user_model(), related_name='bookmarked_tweets', blank=True)
 
     def __str__(self):
         return self.content

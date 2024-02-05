@@ -15,6 +15,9 @@ function Tweet({ author, content, id }) {
     const [comments, setComments] = useState([]);
     const [showCommentInput, setShowCommentInput] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false); // 팔로우 상태
+    const [likesCount, setLikesCount] = useState(0);
+    const [isLiked, setIsLiked] = useState(false);
+    const [isBookmarked, setIsBookmarked] = useState(false);
     const { user } = useUserContext();
     const authToken = user?.token;
 
@@ -111,6 +114,94 @@ function Tweet({ author, content, id }) {
         }
     };
 
+    // // 좋아요 버튼 클릭 핸들러
+    // const handleLike = async () => {
+    //     try {
+    //         await axios.post(`http://localhost:8000/api/tweets/${id}/like/`, {}, {
+    //             headers: { 'Authorization': `Token ${authToken}` },
+    //         });
+    //         fetchLikesCount(); // 좋아요 수 갱신
+    //     } catch (error) {
+    //         console.error('Error liking tweet', error);
+    //     }
+    // };
+
+    // // 좋아요 취소 버튼 클릭 핸들러
+    // const handleUnlike = async () => {
+    //     try {
+    //         await axios.post(`http://localhost:8000/api/tweets/${id}/unlike/`, {}, {
+    //             headers: { 'Authorization': `Token ${authToken}` },
+    //         });
+    //         fetchLikesCount(); // 좋아요 수 갱신
+    //     } catch (error) {
+    //         console.error('Error unliking tweet', error);
+    //     }
+    // };
+    // 좋아요 및 북마크 토글 이벤트 핸들러
+    // 좋아요 및 북마크 토글 이벤트 핸들러
+    const toggleLike = async () => {
+        try {
+            await axios.post(`http://localhost:8000/api/tweets/${id}/toggle_like/`, {}, {
+                headers: { 'Authorization': `Token ${authToken}` },
+            });
+            setIsLiked(!isLiked);
+            fetchLikesCount(); // 좋아요 수 갱신
+        } catch (error) {
+            console.error('Error toggling like', error);
+        }
+    };
+
+    // 좋아요 수를 불러오는 함수
+    const fetchLikesCount = async () => {
+        try {
+            const response = await axios.get(`http://localhost:8000/api/tweets/${id}/likes/count/`, {
+                headers: { 'Authorization': `Token ${authToken}` },
+            });
+            setLikesCount(response.data.likes_count);
+        } catch (error) {
+            console.error('Error fetching likes count', error);
+        }
+    };
+
+    // const handleBookmark = async () => {
+    //     try {
+    //         await axios.post(`http://localhost:8000/api/tweets/${id}/bookmark/`, {}, {
+    //             headers: { 'Authorization': `Token ${authToken}` },
+    //         });
+    //         setIsBookmarked(true); // 북마크 상태 업데이트
+    //     } catch (error) {
+    //         console.error('Error bookmarking tweet', error);
+    //     }
+    // };
+    
+    // const handleRemoveBookmark = async () => {
+    //     try {
+    //         await axios.post(`http://localhost:8000/api/tweets/${id}/remove_bookmark/`, {}, {
+    //             headers: { 'Authorization': `Token ${authToken}` },
+    //         });
+    //         setIsBookmarked(false); // 북마크 상태 업데이트
+    //     } catch (error) {
+    //         console.error('Error removing bookmark', error);
+    //     }
+    // };
+
+    const toggleBookmark = async () => {
+        try {
+            await axios.post(`http://localhost:8000/api/tweets/${id}/toggle_bookmark/`, {}, {
+                headers: { 'Authorization': `Token ${authToken}` },
+            });
+            setIsBookmarked(!isBookmarked); // 북마크 상태 토글
+        } catch (error) {
+            console.error('Error toggling bookmark', error);
+        }
+    };
+
+    // 컴포넌트 마운트 시 좋아요 수 불러오기
+    useEffect(() => {
+        fetchLikesCount();
+    }, []); // 의존성 배열에 아무것도 넣지 않아 컴포넌트 마운트 시 1회 실행
+
+
     useEffect(() => {
         if (showComments) {
             axios.get(`http://localhost:8000/tweets/${id}/comments/`, {
@@ -163,6 +254,15 @@ function Tweet({ author, content, id }) {
                         <Typography variant="body1">{linkifyHashtags(content)}</Typography>
                         <Button onClick={onDelete}>Delete</Button>
                         <Button onClick={onEdit}>Edit</Button>
+                        {/* 좋아요 버튼과 좋아요 수 표시 */}
+                        {/* <Button onClick={handleLike}>좋아요</Button>
+                        <Button onClick={handleUnlike}>좋아요 취소</Button>
+                        <Button onClick={isBookmarked ? handleRemoveBookmark : handleBookmark}>
+                            {isBookmarked ? '북마크 해제' : '북마크'}
+                        </Button> */}
+                        <Button onClick={toggleBookmark}>{isBookmarked ? '북마크 해제' : '북마크'}</Button>
+                        <Button onClick={toggleLike}> {isLiked ? '좋아요 취소': '좋아요'}</Button>
+                        <Typography variant="body2">좋아요 {likesCount}명</Typography>
                         <Button onClick={toggleComments}>{showComments ? '댓글 숨기기' : '댓글 보기'}</Button>
                         <Button onClick={toggleCommentInput}>{showCommentInput ? '취소' : '댓글 달기'}</Button>
                         {showCommentInput && (

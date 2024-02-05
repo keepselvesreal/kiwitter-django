@@ -20,7 +20,19 @@ from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
 
-from tweets.views import TweetViewSet, CommentViewSet, ReplyViewSet, tags
+from tweets.views import (
+    TweetViewSet, 
+    CommentViewSet, 
+    ReplyViewSet, tags, 
+    # like_tweet, 
+    # unlike_tweet, 
+    get_tweet_likes_count, 
+    # bookmark_tweet, 
+    # remove_bookmark_tweet,
+    toggle_like,
+    toggle_bookmark,
+    list_bookmarked_tweets,
+)
 from users.views import follow, unfollow, get_user
 from chats.consumer import ChatConsumer
 from chats.views import check_user_exists, create_conversation, get_conversations, get_messages
@@ -46,6 +58,14 @@ urlpatterns = [
     path('api/create-conversation/', create_conversation, name='create-conversation'),
     path('api/conversations/', get_conversations, name='get-conversations'),
     path('api/conversations/<int:conversation_id>/messages/', get_messages, name='get-messages'),
+    # path('api/tweets/<int:tweet_id>/like/', like_tweet, name='like_tweet'),
+    # path('api/tweets/<int:tweet_id>/unlike/', unlike_tweet, name='unlike_tweet'),
+    path('api/tweets/<int:tweet_id>/likes/count/', get_tweet_likes_count, name='get-tweet-likes-count'),
+    # path('api/tweets/<int:tweet_id>/bookmark/', bookmark_tweet, name='bookmark-tweet'),
+    # path('api/tweets/<int:tweet_id>/unbookmark/', remove_bookmark_tweet, name='unbookmark-tweet'),
+    path('api/tweets/<int:tweet_id>/toggle_like/', toggle_like, name='toggle-like'),
+    path('api/tweets/<int:tweet_id>/toggle_bookmark/', toggle_bookmark, name='toggle-bookmark'),
+    path('api/bookmarks/', list_bookmarked_tweets, name='list_bookmarked_tweets'),
 ]
 
 websocket_urlpatterns = [
