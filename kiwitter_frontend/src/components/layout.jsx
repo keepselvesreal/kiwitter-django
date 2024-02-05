@@ -1,34 +1,53 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
+import { Drawer, List, ListItem, ListItemText, Box, Typography } from '@mui/material';
 
-import Profile from './profile';
+const drawerWidth = 240;
 
 const Layout = () => {
     return (
-        <div>
-            {/* 헤더 또는 내비게이션 바 */}
-            <header>
-                <nav>
-                    <ul>
-                        <li><Link to="/">Home</Link></li>
-                        <li><Link to="/bookmarks">Bookmarks</Link></li>
-                        <li><Link to="/chat">Chat</Link></li>
-                        <li><Link to="/profile" element={<Profile />}>Profile</Link></li>
-                    </ul>
-                </nav>
-            </header>
-
-            {/* 메인 콘텐츠 영역 */}
-            <main>
-                <Outlet /> {/* 자식 라우트들이 여기에 렌더링됩니다 */}
-            </main>
-
-            {/* 푸터 */}
-            <footer>
-                <p>© 2024 올해는 나의 것!</p>
+        <Box sx={{ display: 'flex' }}>
+            <Drawer
+                sx={{
+                    width: drawerWidth,
+                    flexShrink: 0,
+                    '& .MuiDrawer-paper': {
+                        width: drawerWidth,
+                        boxSizing: 'border-box',
+                    },
+                }}
+                variant="permanent"
+                anchor="left"
+            >
+                <List>
+                    {[
+                        { text: 'Home', to: '/' },
+                        { text: 'Bookmarks', to: '/bookmarks' },
+                        { text: 'Chat', to: '/chat' },
+                        { text: 'Profile', to: '/profile' },
+                    ].map((item) => (
+                        <ListItem button key={item.text} component={Link} to={item.to}>
+                            <ListItemText primary={item.text} />
+                        </ListItem>
+                    ))}
+                </List>
+            </Drawer>
+            <Box
+                component="main"
+                sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
+            >
+                {/* Outlet을 사용하여 자식 라우트 컴포넌트를 렌더링 */}
+                <Outlet />
+            </Box>
+            <footer style={{ width: '100%', position: 'fixed', bottom: 0 }}>
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ p: 2 }}>
+                    © 2024 올해는 나의 것!
+                </Typography>
             </footer>
-        </div>
+            
+        </Box>
     );
 };
 
 export default Layout;
+;

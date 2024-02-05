@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Box, TextField, Button } from '@mui/material';
 
 function TweetForm() {
   const [message, setMessage] = useState('');
@@ -27,16 +28,23 @@ function TweetForm() {
   };
 
   return (
-    <div>
+    <Box sx={{ margin: 2 }}>
       <form onSubmit={handleSubmit}>
-        <textarea
-          placeholder="메시지를 입력하세요..."
+        <TextField
+          fullWidth
+          label="메시지를 입력하세요..."
+          multiline
+          rows={4}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          variant="outlined"
+          margin="normal"
         />
-        <button type="submit">전송</button>
+        <Button type="submit" variant="contained" color="primary">
+          입력
+        </Button>
       </form>
-    </div>
+    </Box>
   );
 }
 

@@ -21,7 +21,7 @@ class TweetSerializer(serializers.ModelSerializer):
         
 
 class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.ReadOnlyField(source='author.username')
+    author = UserSerializer(read_only=True)
     tweet = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = Comments

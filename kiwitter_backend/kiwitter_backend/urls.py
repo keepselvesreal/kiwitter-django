@@ -22,6 +22,9 @@ from django.conf.urls.static import static
 
 from tweets.views import TweetViewSet, CommentViewSet, ReplyViewSet, tags
 from users.views import follow, unfollow, get_user
+from chats.consumer import ChatConsumer
+from chats.views import check_user_exists, create_conversation, get_conversations, get_messages
+
 
 router = DefaultRouter()
 router.register("tweets", TweetViewSet)
@@ -32,12 +35,23 @@ urlpatterns = [
     path("users/", include("users.urls")),
     path("", include(router.urls)),
     path('tweets/<int:tweet_id>/comments/', CommentViewSet.as_view({'get': 'list', 'post': 'create'}), name='tweet-comments'),
+    path('tweets/<int:tweet_id>/comments/<int:pk>/', CommentViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='tweet-comment-detail'),
     path('tweets/<int:tweet_id>/comments/<int:comment_id>/replies/', ReplyViewSet.as_view({'get': 'list', 'post': 'create'}), name='comment-replies'),
+    path('tweets/<int:tweet_id>/comments/<int:comment_id>/replies/<int:pk>/', ReplyViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='reply-detail'),
     path("api/follow/<int:user_id>/", follow, name="follow"),
     path("api/unfollow/<int:user_id>/", unfollow, name="unfollow"),
     path('api/tags/<str:tag_name>/', tags, name='tags'),
     path('api/users/<int:user_id>/', get_user, name='get_user'),
+    path('api/check-user-exists/', check_user_exists, name='check-user-exists'),
+    path('api/create-conversation/', create_conversation, name='create-conversation'),
+    path('api/conversations/', get_conversations, name='get-conversations'),
+    path('api/conversations/<int:conversation_id>/messages/', get_messages, name='get-messages'),
+]
+
+websocket_urlpatterns = [
+    path('<str:converId>', ChatConsumer.as_asgi()),
 ]
 
 if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
