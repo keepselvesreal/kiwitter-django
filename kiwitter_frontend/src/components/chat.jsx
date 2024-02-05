@@ -45,10 +45,14 @@ export default function Chat() {
         console.log("fetchMessages response : ", response)
         // 선택된 대화방의 메시지만 업데이트
         setConversations(prevConversations =>
-          prevConversations.map(conv =>
-            // 대화방 ID가 문자열인지 숫자인지 확인 후 비교
-            conv.conversation_id?.toString() === chatId.toString() ? { ...conv, messages: response.data } : conv
-          )
+          prevConversations.map(conv => {
+            // 옵셔널 체이닝을 사용하여 conversation_id의 존재 여부를 확인합니다.
+            const isCurrentConversation = conv.conversation_id?.toString() === chatId.toString();
+            if (isCurrentConversation) {
+              return { ...conv, messages: response.data || [] }; // response.data가 빈 배열인 경우도 처리합니다.
+            }
+            return conv;
+          })
         );
       } catch (error) {
         console.error('메시지 목록을 가져오는데 실패했습니다:', error);
@@ -123,6 +127,7 @@ export default function Chat() {
 
   // 새 참가자 추가
   const handleAddParticipant = async () => {
+    console.log("handleAddParticipant 진입")
     if (participantInput && !newParticipants.includes(participantInput)) {
       try {
         // Django 로컬 주소와 포트를 추가하여 API 요청
@@ -157,7 +162,7 @@ export default function Chat() {
   
         // 대화방 목록에 새 대화방 추가
         const newConversation = {
-          id: conversation_id.toString(),
+          conversation_id: conversation_id.toString(),
           participants: participants, // 서버로부터 받은 participants 배열 사용
           messages: [],
         };
@@ -191,8 +196,6 @@ const handleSelectChat = (chatId) => {
   console.log('chatId:', chatId);
   setSelectedChatId(chatId.toString()); // 상태 업데이트
 };
-
-
 
 
 // 유틸리티 함수: 날짜 문자열을 받아서 포맷팅된 날짜를 반환합니다.
@@ -251,12 +254,11 @@ function formatDate(dateStr) {
           <>
             <h2>대화방: {conversations.find(conv => conv.conversation_id.toString() === selectedChatId.toString()).participants.map(p => p.username).join(', ')}</h2>
             <div className="messages">
-              {conversations.find(conv => conv.conversation_id.toString() === selectedChatId).messages.map((msg, index) => (
+              {conversations.find(conv => conv.conversation_id.toString() === selectedChatId)?.messages.map((msg, index) => (
                 <div key={index} className="message">
-                  {/* 메시지 객체의 필드명을 서버의 MessageSerializer 필드명과 일치시킵니다. */}
                   {`${msg.sender?.username}: ${msg.content} (${formatDate(msg.timestamp)})`}
                 </div>
-              ))}
+              )) || <div>메시지가 없습니다.</div>}
             </div>
             <div className="message-input-container">
               <input
