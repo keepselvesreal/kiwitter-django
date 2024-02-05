@@ -34,11 +34,13 @@ class ChatConsumer(JsonWebsocketConsumer):
         print("message: ", message)
         print("new_message : ", new_message)
 
-        # 새 메시지를 JSON으로 변환합니다.
+        # 클라이언트에 전송할 메시지 포맷을 맞춤
         new_message_json = {
-            "username": new_message.sender.username,
-            "message": new_message.content,
-            "created_at": new_message.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+            "id": new_message.id,  # 메시지 ID 추가
+            # "conversation": new_message.conversation,  # 대화방 ID 추가
+            "sender": username,  # sender의 username 직접 할당
+            "content": message,  # 메시지 내용
+            "timestamp": new_message.timestamp.strftime("%Y-%m-%d %H:%M:%S")  # 시간 포맷 맞춤
         }
 
         # 새 메시지만 클라이언트에 전송합니다.
@@ -55,6 +57,8 @@ class ChatConsumer(JsonWebsocketConsumer):
         print("chat_message 메소드 진입")
         print("event : ", event)
         self.send_json(event['message'])
+        # 클라이언트가 메시지 객체를 예상하는 형식으로 받을 수 있도록 포장
+        # self.send_json({'message': event['message']})
 
 
     def disconnect(self, close_code):

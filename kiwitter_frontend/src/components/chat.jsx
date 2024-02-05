@@ -12,6 +12,11 @@ export default function Chat() {
     const [ws, setWs] = useState(null);
 
     useEffect(() => {
+      // 상태 변화 추적을 위한 useEffect
+      console.log("Conversations updated", conversations);
+    }, [conversations]);
+
+    useEffect(() => {
         const fetchConversations = async () => {
           console.log("fetchConversations 진입")
           const user = JSON.parse(localStorage.getItem('user'));
@@ -54,6 +59,7 @@ export default function Chat() {
             return conv;
           })
         );
+        console.log("conversations after fetchiing : ", conversations)
       } catch (error) {
         console.error('메시지 목록을 가져오는데 실패했습니다:', error);
       }
@@ -77,16 +83,18 @@ export default function Chat() {
         };
     
         ws.onmessage = (event) => {
-          const newMessage = JSON.parse(event.data);
+          const newMessage = JSON.parse(event.data); // 구조 분해 할당을 사용하여 메시지 추출
           console.log('Message from WebSocket: ', newMessage);
-        
+          console.log("selectedChatId : ", selectedChatId)
+    
           setConversations(prevConversations => {
             return prevConversations.map(conv => {
-              if (conv.conversation_id === selectedChatId) {
-                // 새 메시지를 메시지 목록에 추가합니다.
+              if (String(conv.conversation_id) === String(selectedChatId)) {
+                // 메시지를 메시지 목록에 추가
+                console.log("Adding new message to conversation: ", newMessage);
                 return {
                   ...conv,
-                  messages: [...conv.messages, newMessage]
+                  messages: [...(conv.messages || []), newMessage], // 기존 메시지가 없는 경우를 위해 빈 배열을 기본값으로 설정
                 };
               }
               return conv;
@@ -177,6 +185,7 @@ export default function Chat() {
 const handleSelectChat = (chatId) => {
   console.log("handleSelectChat 진입");
   console.log('chatId:', chatId);
+  console.log("conversations : ", conversations)
   setSelectedChatId(chatId.toString()); // 상태 업데이트
 };
 
@@ -239,7 +248,7 @@ function formatDate(dateStr) {
             <div className="messages">
               {conversations.find(conv => conv.conversation_id.toString() === selectedChatId)?.messages?.map((msg, index) => (
                 <div key={index} className="message">
-                  {`${msg.username}: ${msg.message} (${formatDate(msg.created_at)})`}
+                  {`${msg.sender}: ${msg.content} (${formatDate(msg.timestamp)})`}
                 </div>
               )) || <div>메시지가 없습니다.</div>}
             </div>
