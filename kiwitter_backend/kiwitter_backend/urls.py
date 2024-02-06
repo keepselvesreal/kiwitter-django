@@ -38,6 +38,8 @@ from tweets.views import (
     user_comments,
     user_liked_tweets,
     tweets_by_hashtag,
+    # generate_prompt,
+    # generate_image,
 )
 from users.views import follow, unfollow, get_user
 from chats.consumer import ChatConsumer
@@ -78,6 +80,8 @@ urlpatterns = [
     path('api/user-comments/', user_comments, name='user-comments'),
     path('api/user-liked-tweets/', user_liked_tweets, name='user-liked-tweets'),
     path('api/hashtags/<str:hashtag_name>/tweets/', tweets_by_hashtag, name='tweets-by-hashtag'),
+    # path('api/generate_prompt/', views.generate_prompt, name='generate_prompt'),
+    # path('api/generate_image/', views.generate_image, name='generate_image'),
 ]
 
 websocket_urlpatterns = [

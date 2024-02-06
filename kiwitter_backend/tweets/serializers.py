@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.db import transaction
 
 from .models import Tweets, Comments, TweetImage
 
@@ -25,12 +26,22 @@ class TweetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tweets
         fields = "__all__"
+        extra_kwargs = {'images': {'required': False}}
         
     def create(self, validated_data):
-        images_data = validated_data.pop('images', [])
+        print("TweetSerializer create 메서드 진입")
+        # many-to-many 필드를 처리하기 위해 pop을 사용하여 제거
+        validated_data.pop('likes', None)
+        validated_data.pop('tags', None)
+        validated_data.pop('bookmarks', None)
+        images = self.context['request'].FILES.getlist('images')
+        print("validated_data: ", validated_data)
+        print("images_data: ", images)
         tweet = Tweets.objects.create(**validated_data)
-        for image_data in images_data:
-            TweetImage.objects.create(tweet=tweet, **image_data)
+        print("tweet: ", tweet)
+        for image_file in images:
+            TweetImage.objects.create(tweet=tweet, image=image_file)
+            
         return tweet
 
         

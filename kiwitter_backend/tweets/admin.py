@@ -3,7 +3,7 @@ from django.contrib.admin.widgets import AdminFileWidget
 from django.utils.safestring import mark_safe
 from django.db import models
 
-from .models import Tweets, Comments
+from .models import Tweets, Comments, TweetImage
 
 class ReplyInline(admin.TabularInline):
     model = Comments
@@ -32,15 +32,21 @@ class InlineImageWidget(AdminFileWidget):
             html = mark_safe(f"<img src='{value.url}' height='150'>") + html
         return html
     
+class TweetImageInline(admin.TabularInline):
+    model = TweetImage
+    extra = 1  # 기본적으로 표시할 빈 인라인 폼의 수
+    
+    
 class TweetsAdmin(admin.ModelAdmin):
     inlines = [
+        TweetImageInline,
         CommentInline,
         ]
     
-    # 이미지 필드를 위젯으로 설정
-    formfield_overrides = {
-        models.ImageField: {'widget': InlineImageWidget},
-    }
+    # # 이미지 필드를 위젯으로 설정
+    # formfield_overrides = {
+    #     models.ImageField: {'widget': InlineImageWidget},
+    # }
     
 admin.site.register(Tweets, TweetsAdmin)
 admin.site.register(Comments, CommentsAdmin)

@@ -7,14 +7,30 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+import os
+from dotenv import load_dotenv
+import requests
+from django.core.files.base import ContentFile
+import httpx
+from asgiref.sync import async_to_sync
 
-from .models import Tweets, Comments, HashTag
+from .models import Tweets, Comments, HashTag, TweetImage
 
+load_dotenv()
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 def extract_hashtags(content):
     hashtags = set(part[1:] for part in content.split() if part.startswith('#'))
     return [HashTag.objects.get_or_create(name=tag)[0] for tag in hashtags]
 
+
+# 비동기 처리를 위한 별도의 함수
+async def fetch_image_data(image_url):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(image_url)
+        if response.status_code == 200:
+            return ContentFile(response.content, 'image.jpg')  # 임시 파일 이름 지정
+    return None
 
 class TweetViewSet(viewsets.ModelViewSet):
     queryset = Tweets.objects.all().order_by('-created_at')
@@ -23,14 +39,18 @@ class TweetViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         print("TweetViewSet perform_create 메소드 진입")
-        tweet = serializer.save(author=self.request.user, image=self.request.FILES.get('image', None))
+        tweet = serializer.save(author=self.request.user)
         print("tweet: ", tweet)
-        hashtags = extract_hashtags(tweet.content)
-        tweet.tags.set(hashtags)
+        # 생성된 이미지 URL 처리
+        generated_image_urls = self.request.data.getlist('generatedImageUrls', [])
+        print("generated_image_urls: ", generated_image_urls)
+        for image_url in generated_image_urls:
+            # 비동기 함수 호출을 위한 동기화 처리
+            image_data = async_to_sync(fetch_image_data)(image_url)
+            if image_data:
+                TweetImage.objects.create(tweet=tweet, image=image_data)
         
-    def perform_update(self, serializer):
-        print("TweetViewSet perform_update 메소드 진입")
-        tweet = serializer.save()
+        print("image_data: ", image_data)
         hashtags = extract_hashtags(tweet.content)
         tweet.tags.set(hashtags)
 
@@ -194,6 +214,61 @@ def tweets_by_hashtag(request, hashtag_name):
         return Response(serializer.data)
     else:
         return Response({'error': 'Hashtag not found'}, status=404)
+
+# def generate_prompt(request):
+#     print("generate_prompt FBV 진입")
+#     if request.method == "POST":
+#         mood = request.POST.get("mood")
+#         genre = request.POST.get("genre")
+#         prompt_text = f"{mood} 기분을 가장 잘 나타내면서 {genre} 장르에 속하는 독특하고 창의적인 이미지를 생성하기 위한 프롬프트를 작성해주세요."
+
+#         api_endpoint = 'https://api.openai.com/v1/chat/completions'
+#         headers = {
+#             'Authorization': f'Bearer {OPENAI_API_KEY}',
+#             'Content-Type': 'application/json'
+#         }
+#         data = {
+#             'model': 'gpt-3.5-turbo',
+#             'prompt': prompt_text,
+#             'max_tokens': 500,
+#             'temperature': 0.7,
+#         }
+
+#         response = requests.post(api_endpoint, json=data, headers=headers)
+#         if response.status_code == 200:
+#             generated_prompt = response.json()['choices'][0]['text'].strip()
+#             return JsonResponse({'prompt': generated_prompt})
+#         else:
+#             return JsonResponse({'error': 'Failed to generate prompt'}, status=response.status_code)
+#     else:
+#         return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+# def generate_image(request):
+#     print("generate_image FBV 진입")
+#     if request.method == "POST":
+#         prompt = request.POST.get("prompt")
+
+#         api_endpoint = 'https://api.openai.com/v1/images/generations'
+#         headers = {
+#             'Authorization': f'Bearer {OPENAI_API_KEY}',
+#             'Content-Type': 'application/json'
+#         }
+#         data = {
+#             'prompt': prompt,
+#             'n': 1,
+#             'size': '512x512',
+#         }
+
+#         response = requests.post(api_endpoint, json=data, headers=headers)
+#         if response.status_code == 200:
+#             generated_image_url = response.json()['data'][0]['url']
+#             return JsonResponse({'image_url': generated_image_url})
+#         else:
+#             return JsonResponse({'error': 'Failed to generate image'}, status=response.status_code)
+#     else:
+#         return JsonResponse({'error': 'Invalid request method'}, status=405)
+    
+
 
 # class CommentViewSet(viewsets.ModelViewSet):
 #     queryset = Comments.objects.all()
