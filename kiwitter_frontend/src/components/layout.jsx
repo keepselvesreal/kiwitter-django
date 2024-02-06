@@ -24,6 +24,7 @@ const Layout = () => {
                         { text: 'Home', to: '/' },
                         { text: 'Bookmarks', to: '/bookmarks' },
                         { text: 'Chat', to: '/chat' },
+                        { text: 'My Vibe', to: '/mood-painter'},
                         { text: 'Profile', to: '/profile' },
                     ].map((item) => (
                         <ListItem button key={item.text} component={Link} to={item.to}>

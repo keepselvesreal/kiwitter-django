@@ -6,3 +6,4 @@ temp
 kiwitter
 vite-project
 kiwitter_frontend/node_modules
+kiwitter_frontend/.env.development

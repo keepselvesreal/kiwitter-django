@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-from .models import Tweets, Comments
+from .models import Tweets, Comments, TweetImage
 
 User = get_user_model()
 
@@ -12,12 +12,27 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email']  
 
 
+class TweetImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TweetImage
+        fields = ['image']
+        
+        
 class TweetSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
+    images = TweetImageSerializer(many=True, required=False)
 
     class Meta:
         model = Tweets
         fields = "__all__"
+        
+    def create(self, validated_data):
+        images_data = validated_data.pop('images', [])
+        tweet = Tweets.objects.create(**validated_data)
+        for image_data in images_data:
+            TweetImage.objects.create(tweet=tweet, **image_data)
+        return tweet
+
         
 
 class CommentSerializer(serializers.ModelSerializer):

@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.contrib.admin.widgets import AdminFileWidget
+from django.utils.safestring import mark_safe
+from django.db import models
 
 from .models import Tweets, Comments
 
@@ -22,9 +25,22 @@ class CommentInline(admin.TabularInline):
 #     fk_name = 'parent'  # 부모 댓글을 가리키는 외래 키 필드
 #     extra = 1  # 기본적으로 추가로 보여줄 빈 인라인 폼의 수
 
+class InlineImageWidget(AdminFileWidget):
+    def render(self, name, value, attrs=None, renderer=None):
+        html = super().render(name, value, attrs, renderer)
+        if value and getattr(value, "url", None):
+            html = mark_safe(f"<img src='{value.url}' height='150'>") + html
+        return html
     
 class TweetsAdmin(admin.ModelAdmin):
-    inlines = [CommentInline,]
+    inlines = [
+        CommentInline,
+        ]
+    
+    # 이미지 필드를 위젯으로 설정
+    formfield_overrides = {
+        models.ImageField: {'widget': InlineImageWidget},
+    }
     
 admin.site.register(Tweets, TweetsAdmin)
 admin.site.register(Comments, CommentsAdmin)

@@ -37,6 +37,7 @@ from tweets.views import (
     user_tweets,
     user_comments,
     user_liked_tweets,
+    tweets_by_hashtag,
 )
 from users.views import follow, unfollow, get_user
 from chats.consumer import ChatConsumer
@@ -76,6 +77,7 @@ urlpatterns = [
     path('api/user-tweets/', user_tweets, name='user-tweets'),
     path('api/user-comments/', user_comments, name='user-comments'),
     path('api/user-liked-tweets/', user_liked_tweets, name='user-liked-tweets'),
+    path('api/hashtags/<str:hashtag_name>/tweets/', tweets_by_hashtag, name='tweets-by-hashtag'),
 ]
 
 websocket_urlpatterns = [

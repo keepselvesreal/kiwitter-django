@@ -10,9 +10,18 @@ class Tweets(models.Model):
     likes = models.ManyToManyField(get_user_model(), related_name='liked_tweets', blank=True)
     tags = models.ManyToManyField("tweets.Hashtag", verbose_name="hashtags list", blank=True)
     bookmarks = models.ManyToManyField(get_user_model(), related_name='bookmarked_tweets', blank=True)
+    # image = models.ImageField(upload_to='tweet_images/', blank=True, null=True)
 
     def __str__(self):
         return self.content
+    
+
+class TweetImage(models.Model):
+    tweet = models.ForeignKey('Tweets', related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='tweet_images/')
+
+    def __str__(self):
+        return f"Image for tweet {self.tweet.id}"
     
 
 class Comments(models.Model):

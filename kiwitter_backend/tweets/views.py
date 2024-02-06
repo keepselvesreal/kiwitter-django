@@ -23,7 +23,8 @@ class TweetViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         print("TweetViewSet perform_create 메소드 진입")
-        tweet = serializer.save(author=self.request.user)
+        tweet = serializer.save(author=self.request.user, image=self.request.FILES.get('image', None))
+        print("tweet: ", tweet)
         hashtags = extract_hashtags(tweet.content)
         tweet.tags.set(hashtags)
         
@@ -183,6 +184,16 @@ def user_liked_tweets(request):
     liked_tweets = request.user.liked_tweets.all().order_by('-created_at')
     serializer = TweetSerializer(liked_tweets, many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+def tweets_by_hashtag(request, hashtag_name):
+    hashtag = HashTag.objects.filter(name=hashtag_name).first()
+    if hashtag:
+        tweets = hashtag.tweets_set.all().order_by('-created_at')
+        serializer = TweetSerializer(tweets, many=True)
+        return Response(serializer.data)
+    else:
+        return Response({'error': 'Hashtag not found'}, status=404)
 
 # class CommentViewSet(viewsets.ModelViewSet):
 #     queryset = Comments.objects.all()

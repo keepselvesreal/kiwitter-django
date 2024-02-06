@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Card, CardContent, Box, Typography, TextField, Button } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
+import { useNavigate } from 'react-router-dom';
 
 import Comment from './comment'; // 가정: Comment 컴포넌트가 별도 파일로 분리되어 있음
 import { useUserContext } from './UserContext';
@@ -18,6 +19,7 @@ function Tweet({ author, content, id }) {
     const [likesCount, setLikesCount] = useState(0);
     const [isLiked, setIsLiked] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
+    const navigate = useNavigate(); // useNavigate 훅 사용
     const { user } = useUserContext();
     const authToken = user?.token;
     
@@ -93,12 +95,16 @@ function Tweet({ author, content, id }) {
     function linkifyHashtags(text) {
         return text.split(/(\s+)/).map(part => {
             if (part.startsWith('#')) {
-                return <a href={`#hashtag/${part.substring(1)}`}>{part}</a>;
+                // 해시태그를 클릭했을 때의 이벤트 처리
+                const hashtagWithoutHash = part.substring(1); // '#' 제거
+                return <a href={`/hashtags/${hashtagWithoutHash}`} onClick={(e) => {
+                    e.preventDefault(); // 기본 이벤트 방지
+                    navigate(`/hashtags/${hashtagWithoutHash}`); // 프로그래매틱 네비게이션
+                }}>{part}</a>;
             }
             return part;
         });
     }
-
     // '댓글 달기' 버튼 클릭 핸들러
     const toggleCommentInput = () => {
         setShowCommentInput(!showCommentInput);

@@ -14,6 +14,8 @@ import Home from "./components/home";
 import Bookmarks from "./components/bookmarks";
 import Profile from "./components/profile";
 import Chat from "./components/chat";
+import HashtagPage from './components/hashtag-page'; // Import the HashtagPage component
+import DalleMoodPainter from './components/DalleMoodPainter';
 
 const router = createBrowserRouter([
   {
@@ -38,8 +40,12 @@ const router = createBrowserRouter([
       },
       {
         path: "/profile",
-        element : <Profile userId="2" />
+        element: <Profile userId="2" />
       },
+      {
+        path: "/mood-painter",
+        element: <DalleMoodPainter />
+      }
     ],
   },
   {
@@ -49,7 +55,11 @@ const router = createBrowserRouter([
   {
     path:"/register",
     element: <Register />
-  }
+  },
+  { 
+    path: "/hashtags/:hashtag", 
+    element: <HashtagPage /> 
+  },
 ]);
 
 function App() {
