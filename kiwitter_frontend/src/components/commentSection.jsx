@@ -37,40 +37,34 @@ function CommentsSection({ tweetId }) {
         setComments(updatedComments);
     };
 
-    // 대댓글 수정 처리 함수
-const handleReplyUpdated = (commentId, replyId, updatedContent) => {
-    const updatedComments = comments.map(comment => {
-        // 해당 댓글을 찾아 대댓글 목록을 업데이트
-        if (comment.id === commentId) {
-            return {
-                ...comment,
-                replies: comment.replies.map(reply => {
-                    if (reply.id === replyId) {
-                        return { ...reply, content: updatedContent };
+    const handleReplyUpdated = (commentId, updatedReply) => {
+        const updatedComments = comments.map(comment => {
+            if (comment.id === commentId) {
+                // replies 배열이 존재하는지 확인하고, 업데이트합니다.
+                const updatedReplies = comment.replies ? comment.replies.map(reply => {
+                    if (reply.id === updatedReply.id) {
+                        return updatedReply;
                     }
                     return reply;
-                }),
-            };
-        }
-        return comment;
-    });
-    setComments(updatedComments);
-};
+                }) : [];
+                return { ...comment, replies: updatedReplies };
+            }
+            return comment;
+        });
+        setComments(updatedComments);
+    };
 
-// 대댓글 삭제 처리 함수
-const handleReplyDeleted = (commentId, replyId) => {
-    const updatedComments = comments.map(comment => {
-        // 해당 댓글을 찾아 대댓글 목록에서 삭제
-        if (comment.id === commentId) {
-            return {
-                ...comment,
-                replies: comment.replies.filter(reply => reply.id !== replyId),
-            };
-        }
-        return comment;
-    });
-    setComments(updatedComments);
-};
+    const handleReplyDeleted = (commentId, replyId) => {
+        const updatedComments = comments.map(comment => {
+            if (comment.id === commentId) {
+                // Filter out the deleted reply
+                const updatedReplies = comment.replies.filter(reply => reply.id !== replyId);
+                return { ...comment, replies: updatedReplies };
+            }
+            return comment;
+        });
+        setComments(updatedComments);
+    };
 
     return (
         <div>

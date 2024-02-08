@@ -4,7 +4,16 @@ import { Button, TextField, Box, Typography } from '@mui/material';
 
 const API_BASE_URL = 'http://localhost:8000';
 
-function Comment({ comment, tweetId, depth = 0, onCommentDeleted, onCommentUpdated, parentId  }) {
+function Comment({
+    comment,
+    tweetId,
+    depth = 0,
+    onCommentDeleted,
+    onCommentUpdated,
+    onReplyUpdated,
+    onReplyDeleted,
+    parentId = null
+}) {
     const [editMode, setEditMode] = useState(false);
     const [content, setContent] = useState(comment.content);
     const [replyContent, setReplyContent] = useState('');
@@ -20,12 +29,10 @@ function Comment({ comment, tweetId, depth = 0, onCommentDeleted, onCommentUpdat
         }
     }, [comment.id, tweetId]);
 
-    // 댓글이나 대댓글의 내용이 부모 컴포넌트로부터 변경될 때마다 업데이트됩니다.
     useEffect(() => {
         setContent(comment.content);
-        fetchReplies(); // 댓글 내용이 변경될 때 대댓글도 다시 로드합니다.
+        fetchReplies();
     }, [comment]);
-
 
     const fetchReplies = async () => {
         try {
@@ -41,25 +48,31 @@ function Comment({ comment, tweetId, depth = 0, onCommentDeleted, onCommentUpdat
     const handleAction = async (action) => {
         let url;
         if (action === 'edit' || action === 'delete') {
-            // depth를 기준으로 대댓글 처리를 분기합니다.
             if (depth === 0) {
-                // 최상위 댓글의 경우
                 url = `${API_BASE_URL}/tweets/${tweetId}/comments/${comment.id}/`;
             } else {
-                // 대댓글의 경우 parentId를 사용합니다.
                 url = `${API_BASE_URL}/tweets/${tweetId}/comments/${parentId}/replies/${comment.id}/`;
             }
 
             if (action === 'edit') {
                 await axios.patch(url, { content }, { headers: { 'Authorization': `Bearer ${accessToken}` } });
                 setEditMode(false);
-                onCommentUpdated({ ...comment, content }); // 수정된 내용을 상위 컴포넌트로 전달
-            } else {
+                if (depth === 0) {
+                    onCommentUpdated({ ...comment, content });
+                } else {
+                    // 대댓글 수정을 처리합니다.
+                    onReplyUpdated(parentId, { ...comment, id: comment.id, content });
+                }
+            } else if (action === 'delete') {
                 await axios.delete(url, { headers: { 'Authorization': `Bearer ${accessToken}` } });
-                onCommentDeleted(comment.id);
+                if (depth === 0) {
+                    onCommentDeleted(comment.id);
+                } else {
+                    // 대댓글 삭제를 처리합니다.
+                    onReplyDeleted(parentId, comment.id);
+                }
             }
         } else if (action === 'reply') {
-            // 댓글에 대한 답글 처리
             url = `${API_BASE_URL}/tweets/${tweetId}/comments/${comment.id}/replies/`;
             await axios.post(url, { content: replyContent }, { headers: { 'Authorization': `Bearer ${accessToken}` } });
             setReplyContent('');
@@ -115,18 +128,20 @@ function Comment({ comment, tweetId, depth = 0, onCommentDeleted, onCommentUpdat
                 </Box>
             )}
             {replies.map(reply => (
-                <Comment key={reply.id} comment={reply} tweetId={tweetId} depth={depth + 1} onCommentDeleted={onCommentDeleted} onCommentUpdated={onCommentUpdated} parentId={comment.id} />
+                <Comment
+                    key={reply.id}
+                    comment={reply}
+                    tweetId={tweetId}
+                    depth={depth + 1}
+                    onCommentDeleted={onCommentDeleted}
+                    onCommentUpdated={onCommentUpdated}
+                    onReplyUpdated={onReplyUpdated}
+                    onReplyDeleted={onReplyDeleted}
+                    parentId={comment.id}
+                />
             ))}
         </Box>
     );
 }
 
 export default Comment;
-
-
-
-
-
-
-
-
