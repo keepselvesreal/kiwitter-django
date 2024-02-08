@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { useUserContext } from '../components/UserContext'; // UserContext 훅 임포트
-import { useNavigate } from 'react-router-dom'; // 페이지 리다이렉트를 위해 사용
+import { useUserContext } from '../components/UserContext';
+// import { useAuthServiceContext } from '../components/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const { loginUser } = useUserContext(); // 컨텍스트에서 loginUser 함수 사용
+    // const { loginUser } = useUserContext(); // 컨텍스트에서 loginUser 함수 사용
+    const { loginUser } =useUserContext();
     const navigate = useNavigate(); // 페이지 리다이렉션을 위한 히스토리 객체
 
     const handleSubmit = async (event) => {
@@ -13,6 +15,7 @@ const Login = () => {
         
         try {
             // loginUser 함수를 호출하여 로그인
+            // await loginUser(username, password);
             await loginUser(username, password);
             // 로그인 성공 후 리다이렉트, 예를 들어 홈 페이지로
             navigate('/'); // 성공적으로 로그인한 후의 리다이렉션 경로

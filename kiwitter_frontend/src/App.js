@@ -6,6 +6,7 @@ import theme from './theme'; // 위에서 생성한 테마를 임포트
 // import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { UserContextProvider } from './components/UserContext';
+// import { AuthServiceProvider } from './components/AuthContext';
 import ProtectedRoute from './components/protected-route';
 import Register from './pages/register';
 import Login from './pages/login';
@@ -66,8 +67,10 @@ function App() {
   return (
     <ThemeProvider theme={theme}> {/* ThemeProvider를 사용하여 테마 적용 */}
       <UserContextProvider>
+      {/* <AuthServiceProvider> */}
         <RouterProvider router={router} />
       </UserContextProvider>
+      {/* </AuthServiceProvider> */}
     </ThemeProvider>
   );
 }

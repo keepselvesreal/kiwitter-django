@@ -11,7 +11,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-import os
+import os # ts
+import json  # ts
+import sys  # ts
+import datetime  # ts
+from django.conf import settings
 
 # ts
 AUTH_USER_MODEL = "users.User"
@@ -19,6 +23,12 @@ AUTH_USER_MODEL = "users.User"
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECRET_BASE_FILE = os.path.join(BASE_DIR, "secrets.json")
+secrets = json.load(open(SECRET_BASE_FILE))
+for key, value in secrets.items():
+    setattr(sys.modules[__name__], key, value)
+    # print("secrets 동작 확인")
+    # print(key, value)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -41,9 +51,23 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
+    "rest_framework_simplejwt", # ts: jwt 인증 위한 추가
+    # dj_rest_auth 의 registration 을 사용하려면 app에 추가해주어야 한다.
+    'django.contrib.sites',
+    "rest_framework", # ts
     "rest_framework.authtoken", # ts
-    "corsheaders",
+    # Social 로그인을 위한 app
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    # Naver
+    'allauth.socialaccount.providers.naver',
+    # Kakao
+    'allauth.socialaccount.providers.kakao',
+    # dj_rest_auth
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
+    "corsheaders", # ts
     "users",
     "tweets",
     "chats",
@@ -56,6 +80,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    'allauth.account.middleware.AccountMiddleware', # ts
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     'whitenoise.middleware.WhiteNoiseMiddleware', # ts
@@ -143,9 +168,29 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         # 'rest_framework.authentication.SessionAuthentication',
         # "rest_framework.authentication.BasicAuthentication",
-        "rest_framework.authentication.TokenAuthentication",
+        # "rest_framework.authentication.TokenAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        # "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
     ],
 }
+
+JWT_AUTH = {
+    'JWT_SECRET_KEY': settings.SECRET_KEY,
+    'JWT_ALGORITHM': 'HS256',
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=300),
+    'JWT_ALLOW_REFRESH': True,
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7)
+}
+
+# ts
+SITE_ID = 2
+
+# cookie key 와 refresh cookie key 의 이름을 설정(https://axce.tistory.com/131)
+JWT_AUTH_COOKIE = 'sociallogin-auth'
+JWT_AUTH_REFRESH_COOKIE = 'sociallogin-refresh-token'
+
+# JWT 사용을 위한 설정(https://axce.tistory.com/131)
+REST_USE_JWT = True
 
 # ts
 CORS_ALLOWED_ORIGINS = [

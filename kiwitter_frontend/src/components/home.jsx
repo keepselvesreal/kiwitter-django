@@ -1,5 +1,6 @@
 import React from 'react';
-import { useUserContext } from '../components/UserContext'; // 올바른 경로로 수정
+import { useUserContext } from '../components/UserContext';
+// import { useAuthServiceContext } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 import TweetForm from '../components/tweet-form';

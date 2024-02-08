@@ -19,6 +19,10 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 from tweets.views import (
     TweetViewSet, 
@@ -41,7 +45,7 @@ from tweets.views import (
     # generate_prompt,
     # generate_image,
 )
-from users.views import follow, unfollow, get_user
+from users.views import follow, unfollow, get_user, CustomTokenObtainPairView
 from chats.consumer import ChatConsumer
 from chats.views import check_user_exists, create_conversation, get_conversations, get_messages
 
@@ -82,6 +86,10 @@ urlpatterns = [
     path('api/hashtags/<str:hashtag_name>/tweets/', tweets_by_hashtag, name='tweets-by-hashtag'),
     # path('api/generate_prompt/', views.generate_prompt, name='generate_prompt'),
     # path('api/generate_image/', views.generate_image, name='generate_image'),
+    # path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # path('users/', include('allauth.urls')),
 ]
 
 websocket_urlpatterns = [

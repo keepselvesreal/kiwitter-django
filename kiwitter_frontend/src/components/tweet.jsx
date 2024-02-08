@@ -5,7 +5,7 @@ import Avatar from '@mui/material/Avatar';
 import { useNavigate } from 'react-router-dom';
 
 import Comment from './comment'; // 가정: Comment 컴포넌트가 별도 파일로 분리되어 있음
-import { useUserContext } from './UserContext';
+// import { useUserContext } from './UserContext';
 
 
 function Tweet({ author, content, id }) {
@@ -20,8 +20,10 @@ function Tweet({ author, content, id }) {
     const [isLiked, setIsLiked] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
     const navigate = useNavigate(); // useNavigate 훅 사용
-    const { user } = useUserContext();
-    const authToken = user?.token;
+    const userId = localStorage.getItem("userId")
+    // const { user } = useUserContext();
+    // const authToken = user?.token;
+    const accessToken = localStorage.getItem("access token")
     
     const authorName = author ? author.username : 'Unknown';
     const profileImageUrl = author ? author.profileImageUrl : ''; // 유저 프로필 이미지 URL을 이 변수에 할당
@@ -32,7 +34,7 @@ function Tweet({ author, content, id }) {
         // 좋아요 상태 확인
         const fetchLikeStatus = async () => {
             const response = await axios.get(`http://localhost:8000/api/tweets/${id}/is_liked/`, {
-                headers: { 'Authorization': `Token ${authToken}` },
+                headers: { 'Authorization': `Bearer ${accessToken}` },
             });
             setIsLiked(response.data.is_liked);
         };
@@ -40,20 +42,20 @@ function Tweet({ author, content, id }) {
         // 북마크 상태 확인
         const fetchBookmarkStatus = async () => {
             const response = await axios.get(`http://localhost:8000/api/tweets/${id}/is_bookmarked/`, {
-                headers: { 'Authorization': `Token ${authToken}` },
+                headers: { 'Authorization': `Bearer ${accessToken}` },
             });
             setIsBookmarked(response.data.is_bookmarked);
         };
 
         fetchLikeStatus();
         fetchBookmarkStatus();
-    }, [id, authToken]);
+    }, [id, userId]); // authToken 제외
     
 
     const onDelete = async () => {
         if (window.confirm("Are you sure you want to delete this tweet?")) {
             await axios.delete(`http://localhost:8000/tweets/${id}/`, {
-                headers: { 'Authorization': `Token ${authToken}` }
+                headers: { 'Authorization': `Bearer ${accessToken}` }
             });
         }
     };
@@ -66,7 +68,7 @@ function Tweet({ author, content, id }) {
         await axios.patch(`http://localhost:8000/tweets/${id}/`, {
             content: editedTweet,
         }, {
-            headers: { 'Authorization': `Token ${authToken}` }
+            headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         setIsEditing(false);
     };
@@ -83,7 +85,7 @@ function Tweet({ author, content, id }) {
             await axios.post(`http://localhost:8000/tweets/${id}/comments/`, {
                 content: newComment,
             }, {
-                headers: { 'Authorization': `Token ${authToken}` }
+                headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             setNewComment('');
             // 댓글 목록 갱신 로직 추가
@@ -118,7 +120,7 @@ function Tweet({ author, content, id }) {
       const handleFollow = async () => {
         try {
             const response = await axios.post(`http://localhost:8000/api/follow/${author.id}/`, {}, {
-                headers: { 'Authorization': `Token ${authToken}` }
+                headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             if (response.status === 201) {
                 setIsFollowing(true); // 팔로우 성공
@@ -131,7 +133,7 @@ function Tweet({ author, content, id }) {
     const handleUnfollow = async () => {
         try {
             const response = await axios.post(`http://localhost:8000/api/unfollow/${author.id}/`, {}, {
-                headers: { 'Authorization': `Token ${authToken}` }
+                headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             if (response.status === 204) {
                 setIsFollowing(false); // 언팔로우 성공
@@ -155,7 +157,7 @@ function Tweet({ author, content, id }) {
     const toggleLike = async () => {
         try {
             await axios.post(`http://localhost:8000/api/tweets/${id}/toggle_like/`, {}, {
-                headers: { 'Authorization': `Token ${authToken}` },
+                headers: { 'Authorization': `Bearer ${accessToken}` },
             });
             setIsLiked(!isLiked); // 좋아요 상태 토글
             fetchLikesCount(); // 좋아요 수 갱신을 호출
@@ -168,7 +170,7 @@ function Tweet({ author, content, id }) {
     const fetchLikesCount = async () => {
         try {
             const response = await axios.get(`http://localhost:8000/api/tweets/${id}/likes/count/`, {
-                headers: { 'Authorization': `Token ${authToken}` },
+                headers: { 'Authorization': `Bearer ${accessToken}` },
             });
             setLikesCount(response.data.likes_count);
         } catch (error) {
@@ -190,7 +192,7 @@ function Tweet({ author, content, id }) {
         try {
             // 좋아요 토글 요청
             const response = await axios.post(`http://localhost:8000/api/tweets/${id}/toggle_bookmark/`, {}, {
-                headers: { 'Authorization': `Token ${authToken}` },
+                headers: { 'Authorization': `Bearer ${accessToken}` },
             });
             // 응답으로부터 isLiked 상태 업데이트
             setIsBookmarked(response.data.is_bookmarked);
@@ -208,12 +210,12 @@ function Tweet({ author, content, id }) {
     useEffect(() => {
         if (showComments) {
             axios.get(`http://localhost:8000/tweets/${id}/comments/`, {
-                headers: { 'Authorization': `Token ${authToken}` }
+                headers: { 'Authorization': `Bearer ${accessToken}` }
             })
             .then(response => setComments(response.data))
             .catch(error => console.error('Error fetching comments', error));
         }
-    }, [showComments, id, authToken]);
+    }, [showComments, userId]); // authToken 제외
 
     const toggleComments = () => {
         setShowComments(!showComments);
@@ -279,7 +281,7 @@ function Tweet({ author, content, id }) {
                                     <Comment 
                                         key={comment.id} 
                                         comment={comment} 
-                                        authToken={authToken} 
+                                        // authToken={authToken} 
                                         tweetId={id} 
                                         currentUser={author} 
                                         onCommentDeleted={handleCommentDeleted} 
