@@ -85,36 +85,33 @@ function Comment({
     return (
         <Box sx={{ mt: 2, ml: depth * 2 }}>
             {editMode ? (
-                <TextField
-                    fullWidth
-                    size="small"
-                    variant="outlined"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    margin="dense"
-                    sx={{ mb: 1 }}
-                />
+                <>
+                    <TextField
+                        fullWidth
+                        size="small"
+                        variant="outlined"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        margin="dense"
+                    />
+                    <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                        <Button size="small" onClick={() => setEditMode(false)}>취소</Button>
+                        <Button size="small" onClick={() => handleAction('edit')}>저장</Button>
+                    </Box>
+                </>
             ) : (
-                <Typography variant="body1">{comment.content}</Typography>
-            )}
-            {isAuthor && (
-                <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                    {editMode ? (
-                        <>
-                            <Button size="small" onClick={() => setEditMode(false)}>취소</Button>
-                            <Button size="small" onClick={() => handleAction('edit')}>저장</Button>
-                        </>
-                    ) : (
-                        <>
+                <>
+                    <Typography variant="body1">{comment.content}</Typography>
+                    {isAuthor && (
+                        <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                             <Button size="small" onClick={() => setEditMode(true)}>수정하기</Button>
                             <Button size="small" onClick={() => handleAction('delete')}>삭제하기</Button>
-                        </>
+                        </Box>
                     )}
-                </Box>
+                </>
             )}
-            <Button size="small" onClick={() => setShowReplyInput(!showReplyInput)}>댓글 달기</Button>
             {showReplyInput && (
-                <Box sx={{ display: 'flex', mt: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
                     <TextField
                         fullWidth
                         size="small"
@@ -123,9 +120,14 @@ function Comment({
                         onChange={(e) => setReplyContent(e.target.value)}
                         placeholder="대댓글 작성..."
                         margin="dense"
+                        sx={{ mr: 1 }}
                     />
                     <Button onClick={() => handleAction('reply')}>입력</Button>
+                    <Button size="small" onClick={() => setShowReplyInput(false)}>취소</Button>
                 </Box>
+            )}
+            {!editMode && !showReplyInput && (
+                <Button size="small" onClick={() => setShowReplyInput(true)}>댓글 달기</Button>
             )}
             {replies.map(reply => (
                 <Comment

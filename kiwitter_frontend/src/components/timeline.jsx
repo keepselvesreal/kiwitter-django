@@ -23,13 +23,15 @@ function TimeLine() {
         }
     };
 
+    const refreshTweets = () => fetchTweets();
+
     // 트윗 수정 핸들러
     const handleTweetUpdate = async (tweetId, updatedContent) => {
         try {
             await axios.patch(`http://localhost:8000/tweets/${tweetId}/`, { content: updatedContent }, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
-            fetchTweets(); // 변경사항 반영을 위해 트윗 목록 다시 불러오기
+            refreshTweets(); // 변경사항 반영을 위해 트윗 목록 다시 불러오기
         } catch (error) {
             console.error('트윗 수정 중 오류 발생:', error);
         }
@@ -38,11 +40,10 @@ function TimeLine() {
     // 트윗 삭제 핸들러
     const handleTweetDelete = async (tweetId) => {
         try {
-            console.log(`Deleting tweet with ID: ${tweetId}`);
             await axios.delete(`http://localhost:8000/tweets/${tweetId}/`, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
-            fetchTweets(); // 변경사항 반영을 위해 트윗 목록 다시 불러오기
+            refreshTweets(); // 변경사항 반영을 위해 트윗 목록 다시 불러오기
         } catch (error) {
             console.error('트윗 삭제 중 오류 발생:', error);
         }
@@ -98,8 +99,9 @@ function TimeLine() {
                 <Tweet
                     key={tweet.id}
                     tweet={tweet}
+                    refreshTweets={refreshTweets}
                     onTweetUpdate={handleTweetUpdate}
-                    onTweetDelete={handleTweetDelete}
+                    // onTweetDelete={handleTweetDelete}
                     onLike={handleLike}
                     onBookmark={handleBookmark}
                     onFollow={handleFollow}
