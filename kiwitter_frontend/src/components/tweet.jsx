@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Button, Avatar, Box, TextField } from '@mui/material';
+import { Card, CardContent, Typography, Button, Avatar, Box, TextField, Link } from '@mui/material';
 import TweetActions from './tweetActions'; // 이 컴포넌트는 트윗의 액션 버튼들을 관리합니다.
 import CommentsSection from './commentSection'; // 이 컴포넌트는 트윗의 댓글 섹션을 관리합니다.
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
     // console.log(tweet)
@@ -15,6 +16,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
     const [isBookmarked, setIsBookmarked] = useState(tweet.isBookmarked);
     const [isFollowing, setIsFollowing] = useState(tweet.isFollowing);
     const accessToken = localStorage.getItem("access token");
+    const navigate = useNavigate();
 
     // 편집 모드 진입 처리
     const handleEditClick = () => setIsEditing(true);
@@ -127,6 +129,28 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
         }
     };
 
+    const parseHashtags = (content) => {
+        return content.split(/(\s+)/).map((part, index) => {
+            if (part.startsWith('#')) {
+                // 해시태그를 클릭했을 때 이벤트 처리
+                return (
+                    <Link
+                        key={index}
+                        component="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            navigate(`/hashtags/${part.slice(1)}`);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                    >
+                        {part}
+                    </Link>
+                );
+            }
+            return part;
+        });
+    };
+
     useEffect(() => {
         // 댓글 목록 초기 로딩 로직은 유지
     }, [showComments, tweet.id]); // 댓글 보기 상태 변경 시 댓글 목록 갱신
@@ -194,7 +218,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
                     />
                 ) : (
                     <>
-                        <Typography>{tweet.content}</Typography>
+                        <Typography>{parseHashtags(tweet.content)}</Typography>
                         {renderTweetImage()} 
                     </>
                     
