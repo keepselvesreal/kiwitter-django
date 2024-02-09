@@ -219,10 +219,11 @@ def follow(request, user_id):
         current_user = request.user
         try:
             to_user = User.objects.get(pk=user_id)
+            print("to_user -> ", to_user)
              # 이미 팔로우 중인지 확인
             if Relationship.objects.filter(from_user=current_user, to_user=to_user).exists():
-                return JsonResponse({"error": "Already following this user"}, status=400)
-
+                return JsonResponse({"error": "Already following this user"}, status=200) # 상태 코드 200으로 변경. 클라이언트가 이를 명확히 인지할 수 있도록
+            print("pass")
             Relationship.objects.create(from_user=current_user, to_user=to_user)
             return JsonResponse({"status": "success"}, status=201)
         except User.DoesNotExist:
@@ -230,6 +231,7 @@ def follow(request, user_id):
 
 @api_view(['POST'])
 def unfollow(request, user_id):
+    print("unfollow 진입")
     if request.method == "POST":
         current_user = request.user
         try:
