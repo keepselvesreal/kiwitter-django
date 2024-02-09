@@ -10,6 +10,8 @@ export default function Chat() {
     const [participantInput, setParticipantInput] = useState('');
     const [error, setError] = useState('');
     const [ws, setWs] = useState(null);
+    const accessToken = localStorage.getItem("access token");
+    const username = localStorage.getItem("username");
 
     useEffect(() => {
       // 상태 변화 추적을 위한 useEffect
@@ -20,10 +22,11 @@ export default function Chat() {
         const fetchConversations = async () => {
           console.log("fetchConversations 진입")
           const user = JSON.parse(localStorage.getItem('user'));
-          if (user && user.token) {
+          // if (user && user.token) {
+          if (username) {
             try {
               const response = await axios.get('http://127.0.0.1:8000/api/conversations/', {
-                headers: { Authorization: `Token ${user.token}` },
+                headers: { 'Authorization': `Bearer ${accessToken}` },
               });
               // 대화방 목록을 상태에 저장합니다.
               console.log("fetchConversations response : ", response)
@@ -45,7 +48,7 @@ export default function Chat() {
       try {
         // 메시지 목록을 가져오는 API 호출
         const response = await axios.get(`http://127.0.0.1:8000/api/conversations/${chatId}/messages/`, {
-          headers: { Authorization: `Token ${user.token}` },
+          headers: { 'Authorization': `Bearer ${accessToken}` },
         });
         console.log("fetchMessages response : ", response)
         // 선택된 대화방의 메시지만 업데이트
@@ -127,7 +130,9 @@ export default function Chat() {
     if (participantInput && !newParticipants.includes(participantInput)) {
       try {
         // Django 로컬 주소와 포트를 추가하여 API 요청
-        const response = await axios.post('http://127.0.0.1:8000/api/check-user-exists/', { username: participantInput });
+        const response = await axios.post('http://127.0.0.1:8000/api/check-user-exists/', { username: participantInput }, {
+          headers: { 'Authorization': `Bearer ${accessToken}` },
+        });
         if (response.data.exists) {
           setNewParticipants(prev => [...prev, participantInput]);
           setParticipantInput('');
@@ -147,11 +152,11 @@ export default function Chat() {
     console.log("handleCreateConversation 진입")
     if (newParticipants.length > 0) {
       try {
-        const user = JSON.parse(localStorage.getItem('user'));
+        // const user = JSON.parse(localStorage.getItem('user'));
         const response = await axios.post(
           'http://127.0.0.1:8000/api/create-conversation/',
-          { usernames: [...newParticipants, user.username] }, // 현재 사용자도 참가자로 추가
-          { headers: { Authorization: `Token ${user.token}` } }
+          { usernames: [...newParticipants, username] }, // 현재 사용자도 참가자로 추가
+          { headers: { 'Authorization': `Bearer ${accessToken}` } }
         );
         console.log("handleCreateConversation response : ", response)
         const { conversation_id, participants } = response.data;
@@ -179,7 +184,7 @@ export default function Chat() {
   if (ws && ws.readyState === WebSocket.OPEN && message.trim() && selectedChatId) {
     const user = JSON.parse(localStorage.getItem('user'));
     const dataToSend = JSON.stringify({
-      username: user.username,
+      username: username,
       message: message,
     });
     ws.send(dataToSend);
