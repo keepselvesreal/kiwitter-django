@@ -29,10 +29,15 @@ class ChatConsumer(JsonWebsocketConsumer):
         message = content.get("message", "")
         conversation, created = Conversation.objects.get_or_create(id=self.conver_id)
         new_message = Message.objects.create(conversation=conversation,  sender=user, content=message)
+        # last_message_at 필드를 현재 시간으로 업데이트합니다.
+        conversation.last_message_at = timezone.now()
+        conversation.save()
+        
         print("username : ", username)
         print("user : ", user)
         print("message: ", message)
         print("new_message : ", new_message)
+        print("last_message_at : ", conversation.last_message_at)
 
         # 클라이언트에 전송할 메시지 포맷을 맞춤
         new_message_json = {

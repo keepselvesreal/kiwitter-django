@@ -8,120 +8,108 @@ export default function Chat() {
     const [message, setMessage] = useState("");
     const [newParticipants, setNewParticipants] = useState([]);
     const [participantInput, setParticipantInput] = useState('');
+    const [excludeParticipantInput, setExcludeParticipantInput] = useState('');
     const [error, setError] = useState('');
     const [ws, setWs] = useState(null);
     const accessToken = localStorage.getItem("access token");
     const username = localStorage.getItem("username");
 
-    useEffect(() => {
-      // 상태 변화 추적을 위한 useEffect
-      console.log("Conversations updated", conversations);
-    }, [conversations]);
-
-    useEffect(() => {
-        const fetchConversations = async () => {
-          console.log("fetchConversations 진입")
-          const user = JSON.parse(localStorage.getItem('user'));
-          // if (user && user.token) {
-          if (username) {
-            try {
-              const response = await axios.get('http://127.0.0.1:8000/api/conversations/', {
-                headers: { 'Authorization': `Bearer ${accessToken}` },
-              });
-              // 대화방 목록을 상태에 저장합니다.
-              console.log("fetchConversations response : ", response)
-              setConversations(response.data.conversations);
-            } catch (error) {
-              console.error('대화방 목록을 가져오는데 실패했습니다:', error);
-              setError('대화방 목록을 가져오는데 실패했습니다.');
-            }
-          }
-        };
-        
-        fetchConversations();
-      }, []);
-
-    const fetchMessages = async (chatId) => {
-      console.log("fetchMessages 진입")
-      console.log("chatId : ", chatId)
-      const user = JSON.parse(localStorage.getItem('user'));
-      try {
-        // 메시지 목록을 가져오는 API 호출
-        const response = await axios.get(`http://127.0.0.1:8000/api/conversations/${chatId}/messages/`, {
-          headers: { 'Authorization': `Bearer ${accessToken}` },
-        });
-        console.log("fetchMessages response : ", response)
-        // 선택된 대화방의 메시지만 업데이트
-        setConversations(prevConversations =>
-          prevConversations.map(conv => {
-            // 옵셔널 체이닝을 사용하여 conversation_id의 존재 여부를 확인합니다.
-            const isCurrentConversation = conv.conversation_id?.toString() === chatId.toString();
-            if (isCurrentConversation) {
-              return { ...conv, messages: response.data || [] }; // response.data가 빈 배열인 경우도 처리합니다.
-            }
-            return conv;
-          })
-        );
-        console.log("conversations after fetchiing : ", conversations)
-      } catch (error) {
-        console.error('메시지 목록을 가져오는데 실패했습니다:', error);
+    // 대화 목록 가져오기
+  useEffect(() => {
+    const fetchConversations = async () => {
+      if (username) {
+        try {
+          const response = await axios.get('http://127.0.0.1:8000/api/conversations/', {
+            headers: { 'Authorization': `Bearer ${accessToken}` },
+          });
+          const updatedConversations = response.data.conversations.map(conv => ({
+            ...conv,
+            last_message_at: conv.last_message_at || "1970-01-01T00:00:00Z" // 기본값 설정
+          }));
+          // last_message_at 기준으로 정렬
+          updatedConversations.sort((a, b) => new Date(b.last_message_at) - new Date(a.last_message_at));
+          setConversations(updatedConversations);
+        } catch (error) {
+          console.error('대화방 목록을 가져오는데 실패했습니다:', error);
+          setError('대화방 목록을 가져오는데 실패했습니다.');
+        }
       }
     };
+    fetchConversations();
+  }, [username, accessToken]);
 
-    // 선택된 대화방의 메시지를 가져오는 useEffect
-    useEffect(() => {
-      // selectedChatId가 null이 아닐 때만 fetchMessages 호출
-      if (selectedChatId) {
-        fetchMessages(selectedChatId);
-      }
-    }, [selectedChatId]);
+  // 선택된 대화방의 메시지 가져오기
+  const fetchMessages = async (chatId) => {
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/api/conversations/${chatId}/messages/`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+      });
+      // 선택된 대화방의 메시지만 업데이트
+      setConversations(prevConversations =>
+        prevConversations.map(conv => {
+          if (conv.conversation_id?.toString() === chatId.toString()) {
+            return { ...conv, messages: response.data || [] };
+          }
+          return conv;
+        })
+      );
+    } catch (error) {
+      console.error('메시지 목록을 가져오는데 실패했습니다:', error);
+    }
+  };
 
-    useEffect(() => {
-      if (selectedChatId) {
-        const user = JSON.parse(localStorage.getItem('user'));
-        const ws = new WebSocket(`ws://127.0.0.1:8000/${selectedChatId}`);
-    
-        ws.onopen = () => {
-          console.log('WebSocket Connected');
-        };
-    
-        ws.onmessage = (event) => {
-          const newMessage = JSON.parse(event.data); // 구조 분해 할당을 사용하여 메시지 추출
-          console.log('Message from WebSocket: ', newMessage);
-        
-          setConversations(prevConversations => {
-            let isChatUpdated = false;
-            const updatedConversations = prevConversations.map(conv => {
-              if (String(conv.conversation_id) === String(selectedChatId)) {
-                isChatUpdated = true;
-                return {
-                  ...conv,
-                  messages: [...(conv.messages || []), newMessage],
-                  lastMessageTimestamp: Date.now(), // 메시지 수신 시간을 기록
-                };
-              }
-              return conv;
-            });
-        
-            // 만약 현재 선택된 채팅방에 메시지가 추가되었다면, 목록을 재정렬합니다.
-            return isChatUpdated
-              ? updatedConversations.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp)
-              : updatedConversations;
-          });
-        };
-    
-        ws.onerror = (error) => {
-          console.error('WebSocket error: ', error);
-        };
-    
-        ws.onclose = () => {
-          console.log('WebSocket disconnected');
-        };
-    
-        setWs(ws);
-        return () => ws.close();
-      }
-    }, [selectedChatId]);    
+  useEffect(() => {
+    if (selectedChatId) {
+      fetchMessages(selectedChatId);
+    }
+  }, [selectedChatId, accessToken]);
+
+  // WebSocket 연결 및 메시지 수신
+  useEffect(() => {
+    if (selectedChatId) {
+      const newWs = new WebSocket(`ws://127.0.0.1:8000/${selectedChatId}`);
+      newWs.onmessage = (event) => {
+        const newMessage = JSON.parse(event.data);
+        // 새 메시지를 대화 목록에 추가하고 last_message_at 업데이트
+        setConversations(prevConversations => {
+          return prevConversations.map(conv => {
+            if (conv.conversation_id.toString() === selectedChatId.toString()) {
+              const updatedConv = { 
+                ...conv, 
+                messages: [...conv.messages, newMessage],
+                last_message_at: new Date().toISOString() // 현재 시간으로 설정
+              };
+              return updatedConv;
+            }
+            return conv;
+          }).sort((a, b) => new Date(b.last_message_at) - new Date(a.last_message_at)); // 다시 정렬
+        });
+      };
+      setWs(newWs);
+
+      return () => {
+        newWs.close();
+      };
+    }
+  }, [selectedChatId]);
+
+  // 메시지 전송
+  const handleSendMessage = async () => {
+    if (ws && ws.readyState === WebSocket.OPEN && message.trim() && selectedChatId) {
+      const messageData = JSON.stringify({
+        username: username,
+        message: message,
+      });
+      ws.send(messageData);
+      setMessage('');
+      // 로컬에서 즉시 대화 목록 업데이트를 위한 추가 로직은 여기에 포함시키세요
+    }
+  };
+
+  // 선택된 대화방 선택
+  const handleSelectChat = (chatId) => {
+    setSelectedChatId(chatId.toString());
+  };
       
 
   // 새 참가자 추가
@@ -146,6 +134,12 @@ export default function Chat() {
       }
     }
   };
+
+  // 새 참가자 제외 기능
+  const handleExcludeParticipant = () => {
+    setNewParticipants(newParticipants.filter(participant => participant !== excludeParticipantInput));
+    setExcludeParticipantInput(''); // 입력 필드 초기화
+};
 
   // 새 대화방 생성
   const handleCreateConversation = async () => {
@@ -178,42 +172,22 @@ export default function Chat() {
     }
   };
 
-  // 메시지 전송
-  const handleSendMessage = () => {
-  console.log("handleSendMessage 진입");
-  if (ws && ws.readyState === WebSocket.OPEN && message.trim() && selectedChatId) {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const dataToSend = JSON.stringify({
-      username: username,
-      message: message,
+  // 대화방 삭제 함수
+const handleDeleteConversation = async (conversationIdToDelete) => {
+  try {
+    await axios.delete(`http://127.0.0.1:8000/api/conversations/${conversationIdToDelete}/delete/`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` },
     });
-    ws.send(dataToSend);
-    setMessage('');
+    // 대화방 목록에서 삭제된 대화방 제거
+    setConversations(conversations.filter(conv => conv.conversation_id.toString() !== conversationIdToDelete.toString()));
+    // 선택된 대화방 초기화
+    if (selectedChatId === conversationIdToDelete.toString()) {
+      setSelectedChatId(null);
+    }
+  } catch (error) {
+    console.error('대화방 삭제 중 오류 발생:', error);
   }
-  // 메시지 전송 후, 채팅방 목록을 업데이트합니다.
-  setConversations(prevConversations => {
-    const updatedConversations = prevConversations.map(conv => {
-      if (conv.conversation_id.toString() === selectedChatId) {
-        return {
-          ...conv,
-          lastMessageTimestamp: Date.now(), // 최신 메시지의 타임스탬프를 현재 시간으로 설정
-        };
-      }
-      return conv;
-    });
-
-    // 채팅방 목록을 lastMessageTimestamp 기준으로 정렬합니다.
-    return updatedConversations.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp);
-  });
 };
-
-const handleSelectChat = (chatId) => {
-  console.log("handleSelectChat 진입");
-  console.log('chatId:', chatId);
-  console.log("conversations : ", conversations)
-  setSelectedChatId(chatId.toString()); // 상태 업데이트
-};
-
 
 // 유틸리티 함수: 날짜 문자열을 받아서 포맷팅된 날짜를 반환합니다.
 function formatDate(dateStr) {
@@ -245,6 +219,13 @@ function formatDate(dateStr) {
             onChange={(e) => setParticipantInput(e.target.value)}
           />
           <button onClick={handleAddParticipant}>참가자 추가</button>
+          <input
+                type="text"
+                placeholder="제외할 참가자 ID 입력"
+                value={excludeParticipantInput}
+                onChange={(e) => setExcludeParticipantInput(e.target.value)}
+            />
+          <button onClick={handleExcludeParticipant}>제외</button>
           {error && <p style={{ color: 'red' }}>{error}</p>}
         </div>
         {newParticipants.length > 0 && (
@@ -256,13 +237,16 @@ function formatDate(dateStr) {
         {/* sortedConversations 배열을 사용하여 정렬된 목록을 렌더링 */}
         {
           sortedConversations.map((conv, index) => (
-            <div
+            <>
+              <div
               key={index}
               className={`chat-list-item ${selectedChatId === conv.conversation_id ? 'selected' : ''}`}
               onClick={() => handleSelectChat(conv.conversation_id)}
             >
               {conv.participants.map(p => p.username).join(', ')}
-            </div>
+              </div>
+              <button onClick={() => handleDeleteConversation(conv.conversation_id)}>삭제</button>
+            </>
           ))
         }
       </div>

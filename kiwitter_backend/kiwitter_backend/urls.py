@@ -48,7 +48,12 @@ from tweets.views import (
 )
 from users.views import follow, unfollow, get_user, CustomTokenObtainPairView
 from chats.consumer import ChatConsumer
-from chats.views import check_user_exists, create_conversation, get_conversations, get_messages
+from chats.views import (
+    check_user_exists, 
+    create_conversation,
+    delete_conversation, 
+    get_conversations, 
+    get_messages)
 
 
 router = DefaultRouter()
@@ -69,6 +74,7 @@ urlpatterns = [
     path('api/users/<int:user_id>/', get_user, name='get_user'),
     path('api/check-user-exists/', check_user_exists, name='check-user-exists'),
     path('api/create-conversation/', create_conversation, name='create-conversation'),
+    path('api/conversations/<int:conversation_id>/delete/', delete_conversation, name='delete-conversation'),
     path('api/conversations/', get_conversations, name='get-conversations'),
     path('api/conversations/<int:conversation_id>/messages/', get_messages, name='get-messages'),
     # path('api/tweets/<int:tweet_id>/like/', like_tweet, name='like_tweet'),

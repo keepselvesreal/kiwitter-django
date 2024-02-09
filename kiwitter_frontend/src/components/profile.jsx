@@ -75,17 +75,6 @@ const Profile = ({ userId }) => {
     }
   };
 
-  // 트윗 목록을 새로고침하는 함수
-  const refreshTweets = async () => {
-    // 트윗 목록을 다시 가져오는 로직
-    try {
-        const response = await axios.get(`http://localhost:8000/api/user-tweets/`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
-        setTweets(response.data); // 트윗 목록 상태 업데이트
-    } catch (error) {
-        console.error('트윗 로딩 중 오류 발생:', error);
-    }
-};
-
   if (!user) {
     return <Typography>Loading...</Typography>;
   }
@@ -120,16 +109,11 @@ const Profile = ({ userId }) => {
           </Box>
           <Typography variant="h6">작성 트윗</Typography>
           {tweets.map(tweet => (
-              <Tweet 
-                key={tweet.id} 
-                tweet={tweet}
-                refreshTweets={refreshTweets} 
-              />
+              <Tweet key={tweet.id} tweet={tweet} />
           ))}
 
             <Typography variant="h6">작성 댓글</Typography>
             <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-              {console.log("comments", comments)}
               {comments.length > 0 ? (
                 comments.map((comment, index) => (
                   <React.Fragment key={comment.id}>

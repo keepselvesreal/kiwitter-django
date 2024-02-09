@@ -1,8 +1,10 @@
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
 
 from .models import Conversation
 from .models import Message, Conversation
@@ -40,6 +42,20 @@ def create_conversation(request):
         'participants': participants_data
     }, status=201)
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_conversation(request, conversation_id):
+    # 대화 인스턴스를 식별합니다.
+    conversation = get_object_or_404(Conversation, pk=conversation_id)
+
+    # 인증된 사용자가 대화의 참가자인지 확인합니다.
+    if request.user not in conversation.participant.all():
+        return JsonResponse({'error': 'You do not have permission to delete this conversation'}, status=403)
+
+    # 대화를 삭제합니다.
+    conversation.delete()
+
+    return JsonResponse({'message': 'Conversation deleted successfully'}, status=204)
 
 
 @api_view(['GET'])
