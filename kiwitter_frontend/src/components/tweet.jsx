@@ -13,6 +13,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
     const [showCommentInput, setShowCommentInput] = useState(false);
     const [newComment, setNewComment] = useState("");
     const [isLiked, setIsLiked] = useState(tweet.isLiked);
+    const [likesCount, setLikesCount] = useState(tweet.likes.length);
     const [isBookmarked, setIsBookmarked] = useState(tweet.isBookmarked);
     const [isFollowing, setIsFollowing] = useState(tweet.isFollowing);
     const accessToken = localStorage.getItem("access token");
@@ -70,6 +71,18 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
         }
     };
 
+    // 좋아요 수를 불러오는 함수
+    const fetchLikesCount = async () => {
+        try {
+            const response = await axios.get(`http://localhost:8000/api/tweets/${tweet.id}/likes/count/`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` },
+            });
+            setLikesCount(response.data.likes_count);
+        } catch (error) {
+            console.error('Error fetching likes count', error);
+        }
+    };
+
     // 좋아요 토글
     const handleLike = async () => {
         try {
@@ -77,11 +90,16 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             setIsLiked(!isLiked); // 상태 토글
+            fetchLikesCount();
             refreshTweets(); // 트윗 목록 새로고침
         } catch (error) {
             console.error('좋아요 처리 중 오류 발생:', error);
         }
     };
+
+    useEffect(() => {
+        fetchLikesCount(); // 컴포넌트 마운트 시 좋아요 수 불러오기
+    }, [tweet.id]);
 
     // 북마크 토글
     const handleBookmark = async () => {
@@ -223,6 +241,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
                     </>
                     
                 )}
+                <Typography variant="body2">좋아요 {likesCount}명</Typography>
                 <TweetActions
                     onEdit={handleEditClick}
                     onCancelEdit={handleCancelEdit}
