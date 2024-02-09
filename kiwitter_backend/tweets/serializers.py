@@ -36,7 +36,6 @@ class TweetSerializer(serializers.ModelSerializer):
         validated_data.pop('bookmarks', None)
         images = self.context['request'].FILES.getlist('images')
         print("validated_data: ", validated_data)
-        print("images_data: ", images)
         tweet = Tweets.objects.create(**validated_data)
         print("tweet: ", tweet)
         for image_file in images:

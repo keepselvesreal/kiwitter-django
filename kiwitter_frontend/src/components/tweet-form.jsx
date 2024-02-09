@@ -4,12 +4,13 @@ import { useUserContext } from './UserContext';
 
 import { generatePrompt, generateImage } from "./ImageGeneration";
 
-function TweetForm() {
+function TweetForm({ addTweet }) {
   const [message, setMessage] = useState('');
   const [selectedImages, setSelectedImages] = useState([]); // 사용자가 선택한 이미지 파일들
   const [selectedImagePreviews, setSelectedImagePreviews] = useState([]); // 선택한 이미지의 미리보기 URL들
   const [generatedImagePreviews, setGeneratedImagePreviews] = useState([]); // 생성된 이미지의 미리보기 URL들
   const { user } = useUserContext();
+  const accessToken = localStorage.getItem("access token");
   const authToken = user?.token;
   const fileInputRef = useRef(); // 파일 입력을 위한 ref
   const [genre, setGenre] = useState('');
@@ -46,12 +47,14 @@ function TweetForm() {
         const response = await fetch('http://localhost:8000/tweets/', {
             method: 'POST',
             headers: {
-                'Authorization': `Token ${authToken}`  // 토큰 사용 예시
-            },
+              'Authorization': `Bearer ${accessToken}` // 수정됨: `Token ${authToken}`에서 Bearer 토큰 사용으로 변경
+          },
             body: formData, // JSON.stringify를 사용하지 않고 formData 직접 전송
         });
       if (response.status === 201) {
         // 성공적으로 메시지가 추가됨
+        const newTweet = await response.json();
+        addTweet(newTweet);
         setMessage('');
         setSelectedImages([]);
         setSelectedImagePreviews([]);

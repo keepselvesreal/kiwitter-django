@@ -50,7 +50,6 @@ class TweetViewSet(viewsets.ModelViewSet):
             if image_data:
                 TweetImage.objects.create(tweet=tweet, image=image_data)
         
-        print("image_data: ", image_data)
         hashtags = extract_hashtags(tweet.content)
         tweet.tags.set(hashtags)
 
