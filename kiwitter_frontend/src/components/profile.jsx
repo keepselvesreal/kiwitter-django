@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { TextField, Button, Box, Avatar, Typography } from '@mui/material';
+import { TextField, Button, Box, Avatar, Typography, List, ListItem, ListItemText, Divider } from '@mui/material';
 import { useUserContext } from './UserContext';
 
 import Tweet from './tweet';
@@ -98,16 +98,50 @@ const Profile = ({ userId }) => {
           <Button variant="outlined" onClick={() => setEditMode(true)} sx={{ mt: 1 }}>
             Edit Profile
           </Button>
-          <Typography sx={{ mt: 1 }}>팔로우 중인 사용자 아이디: {user.following_ids.join(', ')}</Typography>
+          <Typography sx={{ mt: 1 }}>팔로우 중인 사용자</Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
+            {user.following_ids.map((followingId, index) => (
+              <Box key={index} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Avatar src={`http://localhost:8000/profile_images/${followingId}.jpg`} alt={`User ${followingId}`} sx={{ width: 50, height: 50 }} />
+                <Typography sx={{ mt: 0.5 }}>{followingId}</Typography>
+              </Box>
+            ))}
+          </Box>
           <Typography variant="h6">작성 트윗</Typography>
           {tweets.map(tweet => (
               <Tweet key={tweet.id} tweet={tweet} />
           ))}
 
             <Typography variant="h6">작성 댓글</Typography>
-            {comments.map(comment => (
-                <Typography key={comment.id}>{comment.content}</Typography>
-            ))}
+            <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+              {console.log("comments", comments)}
+              {comments.length > 0 ? (
+                comments.map((comment, index) => (
+                  <React.Fragment key={comment.id}>
+                    <ListItem alignItems="flex-start">
+                      <ListItemText
+                        primary={`댓글: ${comment.content}`}
+                        secondary={
+                          <Typography
+                            sx={{ display: 'inline' }}
+                            component="span"
+                            variant="body2"
+                            color="text.primary"
+                          >
+                            날짜: {new Date(comment.created_at).toLocaleDateString("ko-KR")}
+                          </Typography>
+                        }
+                      />
+                    </ListItem>
+                    {index < comments.length - 1 && <Divider variant="inset" component="li" />}
+                  </React.Fragment>
+                ))
+              ) : (
+                <ListItem>
+                  <ListItemText primary="댓글이 없습니다." />
+                </ListItem>
+              )}
+            </List>
 
             <Typography variant="h6">좋아요 누른 트윗</Typography>
             {likedTweets.map(tweet => (

@@ -5,7 +5,7 @@ import CommentsSection from './commentSection'; // 이 컴포넌트는 트윗의
 import axios from 'axios';
 
 function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
-    console.log(tweet)
+    // console.log(tweet)
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(tweet.content);
     const [showComments, setShowComments] = useState(false);
