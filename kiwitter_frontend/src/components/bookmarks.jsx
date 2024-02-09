@@ -30,12 +30,21 @@ export default function Bookmarks() {
         fetchBookmarkedTweets();
     }, [userId]);
 
+    const handleBookmarkToggle = (tweetId) => {
+        setBookmarkedTweets(prevTweets => prevTweets.filter(tweet => tweet.id !== tweetId));
+      };
+      
+
     return (
         <div>
             <h2>북마크한 트윗</h2>
             {bookmarkedTweets.length > 0 ? (
                 bookmarkedTweets.map(tweet => (
-                    <Tweet key={tweet.id} tweet={tweet} />
+                    <Tweet 
+                        key={tweet.id} 
+                        tweet={tweet} 
+                        onBookmarkToggle={() => handleBookmarkToggle(tweet.id)}
+                    />
                 ))
             ) : (
                 <p>북마크한 트윗이 없습니다.</p>

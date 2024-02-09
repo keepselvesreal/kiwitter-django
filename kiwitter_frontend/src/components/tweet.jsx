@@ -4,7 +4,7 @@ import TweetActions from './tweetActions'; // 이 컴포넌트는 트윗의 액�
 import CommentsSection from './commentSection'; // 이 컴포넌트는 트윗의 댓글 섹션을 관리합니다.
 import axios from 'axios';
 
-function Tweet({ tweet, refreshTweets }) {
+function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
     // console.log(tweet)
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(tweet.content);
@@ -88,6 +88,7 @@ function Tweet({ tweet, refreshTweets }) {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             setIsBookmarked(!isBookmarked);
+            onBookmarkToggle && onBookmarkToggle(tweet.id);
             refreshTweets(); // 트윗 목록 새로고침
         } catch (error) {
             console.error('북마크 처리 중 오류 발생:', error);
