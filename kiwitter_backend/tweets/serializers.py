@@ -18,6 +18,12 @@ class TweetImageSerializer(serializers.ModelSerializer):
         model = TweetImage
         fields = ['image']
         
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            return request.build_absolute_uri(obj.image.url)
+        return None
+        
         
 class TweetSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)

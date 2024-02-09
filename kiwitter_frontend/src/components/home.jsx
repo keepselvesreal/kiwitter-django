@@ -27,6 +27,7 @@ export default function Home() {
             console.error('트윗 로딩 중 오류 발생:', error);
         }
     };
+    console.log("home tweets: ", tweets)
 
     const handleLogout = () => {
         console.log('Logging out...');

@@ -4,8 +4,8 @@ import TweetActions from './tweetActions'; // 이 컴포넌트는 트윗의 액�
 import CommentsSection from './commentSection'; // 이 컴포넌트는 트윗의 댓글 섹션을 관리합니다.
 import axios from 'axios';
 
-function Tweet({ tweet, refreshTweets, onTweetStateChange, onBookmarkToggle }) {
-    // console.log(tweet)
+function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
+    console.log(tweet)
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(tweet.content);
     const [showComments, setShowComments] = useState(false);
@@ -116,7 +116,11 @@ function Tweet({ tweet, refreshTweets, onTweetStateChange, onBookmarkToggle }) {
             return (
                 <Box sx={{ my: 2 }}>
                     {tweet.images.map((image, index) => (
-                    <img key={index} src={image.image} alt={`Tweet ${index}`} style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }} />
+                    <img 
+                        key={index} 
+                        src={`${image.image}`}
+                        alt={`Tweet ${index}`} 
+                        style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }} />
                 ))}
                 </Box>
             );

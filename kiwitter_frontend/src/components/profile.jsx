@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { TextField, Button, Box, Avatar, Typography } from '@mui/material';
-
 import { useUserContext } from './UserContext';
+
+import Tweet from './tweet';
 
 const Profile = ({ userId }) => {
   const [user, setUser] = useState(null);
@@ -14,12 +15,13 @@ const Profile = ({ userId }) => {
   const [comments, setComments] = useState([]);
   const [likedTweets, setLikedTweets] = useState([]);
   const authToken = localStorage.getItem('token'); // user 변수명이 위에서 사용 중이라 일단 브라우저 저장소에서 직접 토큰을 가져옴
+  const accessToken = localStorage.getItem("access token");
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await axios.get(`http://localhost:8000/api/users/${userId}/`, {
-          headers: { 'Authorization': `Token ${localStorage.getItem('token')}` }
+          headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         setUser(response.data);
         setUsername(response.data.username);
@@ -34,15 +36,15 @@ const Profile = ({ userId }) => {
 
   useEffect(() => {
       const fetchTweets = async () => {
-          const response = await axios.get(`http://localhost:8000/api/user-tweets/`, { headers: { 'Authorization': `Token ${authToken}` } });
+          const response = await axios.get(`http://localhost:8000/api/user-tweets/`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
           setTweets(response.data);
       };
       const fetchComments = async () => {
-          const response = await axios.get(`http://localhost:8000/api/user-comments/`, { headers: { 'Authorization': `Token ${authToken}` } });
+          const response = await axios.get(`http://localhost:8000/api/user-comments/`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
           setComments(response.data);
       };
       const fetchLikedTweets = async () => {
-          const response = await axios.get(`http://localhost:8000/api/user-liked-tweets/`, { headers: { 'Authorization': `Token ${authToken}` } });
+          const response = await axios.get(`http://localhost:8000/api/user-liked-tweets/`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
           setLikedTweets(response.data);
       };
 
@@ -62,7 +64,7 @@ const Profile = ({ userId }) => {
     try {
       await axios.patch(`http://localhost:8000/api/users/${userId}/`, formData, {
         headers: { 
-          'Authorization': `Token ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'multipart/form-data'
         }
       });
@@ -98,19 +100,19 @@ const Profile = ({ userId }) => {
           </Button>
           <Typography sx={{ mt: 1 }}>팔로우 중인 사용자 아이디: {user.following_ids.join(', ')}</Typography>
           <Typography variant="h6">작성 트윗</Typography>
-            {tweets.map(tweet => (
-                <Typography key={tweet.id}>{tweet.content}</Typography>
-            ))}
+          {tweets.map(tweet => (
+              <Tweet key={tweet.id} tweet={tweet} />
+          ))}
 
             <Typography variant="h6">작성 댓글</Typography>
             {comments.map(comment => (
                 <Typography key={comment.id}>{comment.content}</Typography>
             ))}
 
-            <Typography variant="h6">좋아요 누른 글</Typography>
+            <Typography variant="h6">좋아요 누른 트윗</Typography>
             {likedTweets.map(tweet => (
-                <Typography key={tweet.id}>{tweet.content}</Typography>
-            ))}
+              <Tweet key={tweet.id} tweet={tweet} />
+          ))}
         </Box>
       )}
     </Box>

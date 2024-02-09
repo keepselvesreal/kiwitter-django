@@ -199,7 +199,7 @@ def list_bookmarked_tweets(request):
 # @permission_classes([IsAuthenticated])
 def user_tweets(request):
     tweets = Tweets.objects.filter(author=request.user).order_by('-created_at')
-    serializer = TweetSerializer(tweets, many=True)
+    serializer = TweetSerializer(tweets, many=True, context={'request': request})
     return Response(serializer.data)
 
 @api_view(['GET'])
@@ -213,7 +213,7 @@ def user_comments(request):
 # @permission_classes([IsAuthenticated])
 def user_liked_tweets(request):
     liked_tweets = request.user.liked_tweets.all().order_by('-created_at')
-    serializer = TweetSerializer(liked_tweets, many=True)
+    serializer = TweetSerializer(liked_tweets, many=True, context={'request': request})
     return Response(serializer.data)
 
 @api_view(['GET'])
