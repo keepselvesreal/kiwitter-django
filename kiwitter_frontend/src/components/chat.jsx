@@ -135,10 +135,9 @@ export default function Chat() {
     }
   };
 
-  // 새 참가자 제외 기능
-  const handleExcludeParticipant = () => {
-    setNewParticipants(newParticipants.filter(participant => participant !== excludeParticipantInput));
-    setExcludeParticipantInput(''); // 입력 필드 초기화
+  // 직전에 추가한 참가자 제외
+  const handleCancelLastAddedParticipant = () => {
+    setNewParticipants(prevParticipants => prevParticipants.slice(0, prevParticipants.length - 1));
 };
 
   // 새 대화방 생성
@@ -219,13 +218,9 @@ function formatDate(dateStr) {
             onChange={(e) => setParticipantInput(e.target.value)}
           />
           <button onClick={handleAddParticipant}>참가자 추가</button>
-          <input
-                type="text"
-                placeholder="제외할 참가자 ID 입력"
-                value={excludeParticipantInput}
-                onChange={(e) => setExcludeParticipantInput(e.target.value)}
-            />
-          <button onClick={handleExcludeParticipant}>제외</button>
+          {newParticipants.length > 0 && (
+                        <button onClick={handleCancelLastAddedParticipant}>추가 취소</button>
+                    )}
           {error && <p style={{ color: 'red' }}>{error}</p>}
         </div>
         {newParticipants.length > 0 && (
