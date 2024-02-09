@@ -177,7 +177,7 @@ REST_FRAMEWORK = {
 JWT_AUTH = {
     'JWT_SECRET_KEY': settings.SECRET_KEY,
     'JWT_ALGORITHM': 'HS256',
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=3000),# 3000으로 수정
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=30000),# 3000으로 수정
     'JWT_ALLOW_REFRESH': True,
     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7)
 }

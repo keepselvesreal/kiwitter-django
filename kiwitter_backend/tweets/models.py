@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 
 class Tweets(models.Model):
     author = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
-    content = models.TextField()
+    content = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     likes = models.ManyToManyField(get_user_model(), related_name='liked_tweets', blank=True)
     tags = models.ManyToManyField("tweets.Hashtag", verbose_name="hashtags list", blank=True)

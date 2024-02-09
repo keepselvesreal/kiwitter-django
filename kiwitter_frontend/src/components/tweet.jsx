@@ -5,6 +5,7 @@ import CommentsSection from './commentSection'; // 이 컴포넌트는 트윗의
 import axios from 'axios';
 
 function Tweet({ tweet, refreshTweets }) {
+    // console.log(tweet)
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(tweet.content);
     const [showComments, setShowComments] = useState(false);
@@ -106,6 +107,21 @@ function Tweet({ tweet, refreshTweets }) {
         }
     };
 
+    // 트윗에 이미지 URL이 있을 경우 이미지를 렌더링하기 위한 조건부 렌더링 로직 추가
+    const renderTweetImage = () => {
+        // 트윗 객체 내의 이미지 URL이 있는 경우에만 이미지 태그를 렌더링합니다.
+        // tweet.imageUrl를 tweet 객체 내의 이미지 URL을 가리키는 실제 속성명으로 변경해야 할 수 있습니다.
+        if (tweet.images && tweet.images.length > 0) {
+            return (
+                <Box sx={{ my: 2 }}>
+                    {tweet.images.map((image, index) => (
+                    <img key={index} src={image.image} alt={`Tweet ${index}`} style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }} />
+                ))}
+                </Box>
+            );
+        }
+    };
+
     useEffect(() => {
         // 댓글 목록 초기 로딩 로직은 유지
     }, [showComments, tweet.id]); // 댓글 보기 상태 변경 시 댓글 목록 갱신
@@ -126,7 +142,11 @@ function Tweet({ tweet, refreshTweets }) {
                         margin="dense"
                     />
                 ) : (
-                    <Typography>{tweet.content}</Typography>
+                    <>
+                        <Typography>{tweet.content}</Typography>
+                        {renderTweetImage()} 
+                    </>
+                    
                 )}
                 <TweetActions
                     onEdit={handleEditClick}

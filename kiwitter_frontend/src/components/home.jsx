@@ -4,7 +4,7 @@ import { useUserContext } from '../components/UserContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-import TweetForm from './tweet-form';
+import TweetForm from './tweetForm';
 import Timeline from './timeline';
 
 export default function Home() {
@@ -39,11 +39,13 @@ export default function Home() {
         setTweets(prevTweets => [newTweet, ...prevTweets]); // 새 트윗을 목록의 맨 앞에 추가
     };
 
+    const refreshTweets = () => fetchTweets();
+
     return (
         <div>
             <div style={{ position: 'relative' }}>
                 <TweetForm addTweet={addTweet} />
-                <Timeline tweets={tweets} />
+                <Timeline tweets={tweets} refreshTweets={refreshTweets}/>
                 {/* 로그아웃 버튼을 우측 상단에 배치 */}
                 <button 
                     onClick={handleLogout} 
