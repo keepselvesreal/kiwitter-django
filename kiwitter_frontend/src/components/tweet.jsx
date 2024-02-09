@@ -4,7 +4,7 @@ import TweetActions from './tweetActions'; // 이 컴포넌트는 트윗의 액�
 import CommentsSection from './commentSection'; // 이 컴포넌트는 트윗의 댓글 섹션을 관리합니다.
 import axios from 'axios';
 
-function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
+function Tweet({ tweet, refreshTweets, onTweetStateChange, onBookmarkToggle }) {
     // console.log(tweet)
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(tweet.content);
@@ -31,7 +31,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
     // 편집 저장 처리
     const handleSaveEdit = async () => {
         try {
-            await axios.patch(`http://localhost:8000/tweets/${tweet.id}/`, { content: editContent }, {
+            await axios.patch(`http://localhost:8000/tweets/${tweet.author.id}/`, { content: editContent }, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             setIsEditing(false); // 편집 모드 종료
@@ -126,6 +126,52 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
     useEffect(() => {
         // 댓글 목록 초기 로딩 로직은 유지
     }, [showComments, tweet.id]); // 댓글 보기 상태 변경 시 댓글 목록 갱신
+
+    useEffect(() => {
+        // 좋아요 상태를 가져오는 함수
+        const fetchLikedStatus = async () => {
+            try {
+                // API 요청을 통해 좋아요 상태 확인
+                const response = await axios.get(`http://localhost:8000/api/tweets/${tweet.id}/is_liked/`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` },
+                });
+                // response.data.is_liked 대신 올바른 필드명으로 수정
+                setIsLiked(response.data.is_liked);
+            } catch (error) {
+                console.error('좋아요 상태 가져오기 실패:', error);
+            }
+        };
+    
+        // 북마크 상태를 가져오는 함수
+        const fetchBookmarkedStatus = async () => {
+            try {
+                // API 요청을 통해 북마크 상태 확인
+                const response = await axios.get(`http://localhost:8000/api/tweets/${tweet.id}/is_bookmarked/`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` },
+                });
+                // response.data.is_bookmarked 대신 올바른 필드명으로 수정
+                setIsBookmarked(response.data.is_bookmarked);
+            } catch (error) {
+                console.error('북마크 상태 가져오기 실패:', error);
+            }
+        };
+
+        const fetchFollowingStatus = async () => {
+            try {
+                const response = await axios.get(`http://localhost:8000/api/users/${tweet.author.id}/is_following/`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` },
+                });
+                // response.data.is_bookmarked 대신 올바른 필드명으로 수정
+                setIsFollowing(response.data.is_following);
+            } catch (error) {
+                console.error('팔로우 상태 가져오기 실패:', error);
+            }
+        };
+    
+        fetchLikedStatus();
+        fetchBookmarkedStatus();
+        fetchFollowingStatus();
+    }, [tweet.id, tweet.author.id,]); 
 
     return (
         <Card sx={{ marginBottom: 2 }}>

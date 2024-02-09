@@ -4,7 +4,7 @@ from .serializers import TweetSerializer, CommentSerializer, ReplySerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 import os
@@ -13,11 +13,13 @@ import requests
 from django.core.files.base import ContentFile
 import httpx
 from asgiref.sync import async_to_sync
+from django.contrib.auth import get_user_model
 
 from .models import Tweets, Comments, HashTag, TweetImage
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+
 
 def extract_hashtags(content):
     hashtags = set(part[1:] for part in content.split() if part.startswith('#'))
@@ -137,6 +139,16 @@ def is_liked(request, tweet_id):
     tweet = get_object_or_404(Tweets, pk=tweet_id)
     is_liked = tweet.likes.filter(pk=request.user.pk).exists()
     return Response({"is_liked": is_liked})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def is_following(request, user_id):
+    """현재 사용자가 특정 유저를 팔로우 중인지 확인합니다."""
+    # 대상 사용자의 존재를 확인합니다.
+    target_user = get_object_or_404(get_user_model(), pk=user_id)
+    # 현재 사용자가 대상 사용자를 팔로우 중인지 확인합니다.
+    is_following = request.user.following.filter(pk=user_id).exists()
+    return Response({"is_following": is_following})
 
 @api_view(['GET'])
 def get_tweet_likes_count(request, tweet_id):
