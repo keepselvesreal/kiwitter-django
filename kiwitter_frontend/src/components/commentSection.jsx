@@ -37,6 +37,10 @@ function CommentsSection({ tweetId }) {
         setComments(updatedComments);
     };
 
+    const handleNewCommentAdded = (newComment) => {
+        setComments(prevComments => [newComment, ...prevComments]);
+    };
+
     const handleReplyUpdated = (commentId, updatedReply) => {
         const updatedComments = comments.map(comment => {
             if (comment.id === commentId) {

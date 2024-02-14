@@ -17,6 +17,7 @@ import Profile from "./components/profile";
 import Chat from "./components/chat";
 import HashtagPage from './components/hashtag-page'; // Import the HashtagPage component
 import DalleMoodPainter from './components/DalleMoodPainter';
+import MyVibe from './components/myVibe';
 
 const router = createBrowserRouter([
   {
@@ -41,12 +42,16 @@ const router = createBrowserRouter([
       },
       {
         path: "/profile",
-        element: <Profile userId="2" />
+        element: <Profile />
       },
       {
         path: "/mood-painter",
         element: <DalleMoodPainter />
-      }
+      },
+      {
+        path: "/my-vibe",
+        element: <MyVibe />
+      },
     ],
   },
   {

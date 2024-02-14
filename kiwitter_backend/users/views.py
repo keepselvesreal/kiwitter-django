@@ -20,6 +20,7 @@ from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.kakao.views import KakaoOAuth2Adapter
 from dj_rest_auth.registration.serializers import SocialLoginSerializer
 from json import JSONDecodeError
+import random
 
 from .models import Relationship
 from .serializers import UserSerializer, CustomTokenObtainPairSerializer
@@ -240,3 +241,21 @@ def unfollow(request, user_id):
             return JsonResponse({"status": "success"}, status=204)
         except User.DoesNotExist:
             return JsonResponse({"error": "User not found"}, status=404)
+        
+@api_view(['GET'])
+def recommend_random_users(request):
+    # 모든 유저 중에서 랜덤하게 7명 선택
+    users_count = User.objects.count()
+
+    # 만약 사용자 수가 7보다 작다면 모든 사용자를 추천
+    if users_count <= 7:
+        random_users = User.objects.all()
+    else:
+        # 중복되지 않는 랜덤한 7개의 인덱스 생성
+        random_indexes = random.sample(range(users_count), 7)
+        # 생성된 인덱스를 사용하여 사용자 선택
+        random_users = User.objects.filter(pk__in=random_indexes)
+
+    # User 모델을 위한 Serializer를 사용하여 JSON으로 변환
+    serializer = UserSerializer(random_users, many=True)
+    return Response(serializer.data)

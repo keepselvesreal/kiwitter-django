@@ -54,6 +54,19 @@ class TweetViewSet(viewsets.ModelViewSet):
         
         hashtags = extract_hashtags(tweet.content)
         tweet.tags.set(hashtags)
+        
+    @action(detail=True, methods=['get'], url_path='comments-count')
+    def comments_count(self, request, pk=None):
+        tweet = self.get_object()
+        comments_count = tweet.comments.count()
+        return Response({"tweet_id": tweet.id, "comments_count": comments_count})
+    
+    @action(detail=False, methods=['get'], url_path='my-vibe')
+    def tweets_by_my_vibe(self, request):
+        my_vibe_tag = get_object_or_404(HashTag, name='my_vibe')
+        tweets = self.queryset.filter(tags=my_vibe_tag).order_by('-created_at')
+        serializer = self.get_serializer(tweets, many=True)
+        return Response(serializer.data)
 
 
 class CommentViewSet(viewsets.ModelViewSet):

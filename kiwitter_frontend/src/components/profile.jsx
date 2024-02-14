@@ -5,7 +5,7 @@ import { useUserContext } from './UserContext';
 
 import Tweet from './tweet';
 
-const Profile = ({ userId }) => {
+const Profile = () => {
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [username, setUsername] = useState('');
@@ -16,6 +16,7 @@ const Profile = ({ userId }) => {
   const [likedTweets, setLikedTweets] = useState([]);
   const authToken = localStorage.getItem('token'); // user 변수명이 위에서 사용 중이라 일단 브라우저 저장소에서 직접 토큰을 가져옴
   const accessToken = localStorage.getItem("access token");
+  const userId = localStorage.getItem("user_id");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -109,7 +110,9 @@ const Profile = ({ userId }) => {
           </Box>
           <Typography variant="h6">작성 트윗</Typography>
           {tweets.map(tweet => (
-              <Tweet key={tweet.id} tweet={tweet} />
+              <Box key={tweet.id} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Tweet tweet={tweet} />
+              </Box>
           ))}
 
             <Typography variant="h6">작성 댓글</Typography>
@@ -117,7 +120,7 @@ const Profile = ({ userId }) => {
               {comments.length > 0 ? (
                 comments.map((comment, index) => (
                   <React.Fragment key={comment.id}>
-                    <ListItem alignItems="flex-start">
+                    <ListItem alignItems="flex-start" sx={{ justifyContent: 'center' }}>
                       <ListItemText
                         primary={`댓글: ${comment.content}`}
                         secondary={
@@ -143,9 +146,11 @@ const Profile = ({ userId }) => {
             </List>
 
             <Typography variant="h6">좋아요 누른 트윗</Typography>
-            {likedTweets.map(tweet => (
-              <Tweet key={tweet.id} tweet={tweet} />
-          ))}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {likedTweets.map(tweet => (
+                <Tweet key={tweet.id} tweet={tweet} />
+              ))}
+            </Box>
         </Box>
       )}
     </Box>

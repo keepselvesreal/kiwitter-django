@@ -46,7 +46,7 @@ from tweets.views import (
     # generate_prompt,
     # generate_image,
 )
-from users.views import follow, unfollow, get_user, CustomTokenObtainPairView
+from users.views import follow, unfollow, get_user, CustomTokenObtainPairView, recommend_random_users
 from chats.consumer import ChatConsumer
 from chats.views import (
     check_user_exists, 
@@ -98,6 +98,7 @@ urlpatterns = [
     path('api/token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # path('users/', include('allauth.urls')),
+    path('api/recommend-users/', recommend_random_users, name='recommend-users'),
 ]
 
 websocket_urlpatterns = [

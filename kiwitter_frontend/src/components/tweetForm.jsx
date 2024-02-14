@@ -2,12 +2,13 @@ import React, { useState, useRef } from 'react';
 import { Box, TextField, Button } from '@mui/material';
 import { generatePrompt, generateImage } from "./ImageGeneration";
 
+
 function TweetForm({ addTweet }) {
   const [message, setMessage] = useState('');
   const [images, setImages] = useState([]); // 사용자가 선택한 이미지 파일들
   const [imagePreviews, setImagePreviews] = useState([]); // 선택한 이미지의 미리보기 URL들
   const fileInputRef = useRef();
-  const [genre, setGenre] = useState('');
+  const [genre, setGenre] = useState('animation');
   const genres = ['animation', 'Pop Art', 'Minimal Line Art', 'Street Art', 'Splatter Paint', 'cartoon', 'Blog Illustration'];
   const accessToken = localStorage.getItem("access token");
 
@@ -68,7 +69,7 @@ function TweetForm({ addTweet }) {
   };
 
   return (
-    <Box sx={{ margin: 2 }}>
+    <Box sx={{ margin: 2, width: "60%" }}>
       <form onSubmit={handleSubmit}>
         <TextField
           fullWidth
@@ -91,14 +92,14 @@ function TweetForm({ addTweet }) {
             이미지 선택
             <input type="file" hidden multiple ref={fileInputRef} onChange={handleImageChange} />
           </Button>
+          <Button onClick={() => generateAndAddImage(false)}>이미지 생성</Button>
+          <Button onClick={() => generateAndAddImage(true)}>이미지 생성 with AI</Button>
           <TextField select value={genre} onChange={(e) => setGenre(e.target.value)} sx={{ minWidth: 120 }}>
             {genres.map(g => <option key={g} value={g}>{g}</option>)}
           </TextField>
-          <Button onClick={() => generateAndAddImage(false)}>이미지 생성</Button>
-          <Button onClick={() => generateAndAddImage(true)}>이미지 생성 with AI</Button>
         </Box>
         <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
-          제출
+          작성
         </Button>
       </form>
     </Box>

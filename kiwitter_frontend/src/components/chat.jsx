@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/chat.css';
 import axios from 'axios'; // axios 라이브러리 임포트
+import { 
+  Box, 
+  Button, 
+  List, 
+  ListItem, 
+  ListItemText, 
+  TextField, 
+  Paper, 
+  IconButton,
+  Typography
+} from '@mui/material';
+// import DeleteIcon from '@mui/icons-material/Delete';
 
 export default function Chat() {
     const [selectedChatId, setSelectedChatId] = useState(null);
@@ -13,6 +25,40 @@ export default function Chat() {
     const [ws, setWs] = useState(null);
     const accessToken = localStorage.getItem("access token");
     const username = localStorage.getItem("username");
+
+    // 새 대화방을 추가하는 부분 스타일
+  const newConversationSectionStyle = {
+    padding: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    alignItems: 'center',
+  };
+
+  const chatListStyle = {
+    width: '30%',
+    overflowY: 'auto',
+  };
+
+  const chatWindowStyle = {
+    width: '70%',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  };
+
+  const chatMessagesStyle = {
+    flexGrow: 1,
+    overflowY: 'auto',
+    padding: '16px',
+  };
+
+  const messageInputStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '16px',
+  };
+    
 
     // 대화 목록 가져오기
   useEffect(() => {
@@ -207,70 +253,98 @@ function formatDate(dateStr) {
 });
   
 
-  return (
-    <div className="app-container">
-      <div className="chat-list">
-        <div>
-          <input
-            type="text"
-            placeholder="참가자 ID 입력"
-            value={participantInput}
-            onChange={(e) => setParticipantInput(e.target.value)}
-          />
-          <button onClick={handleAddParticipant}>참가자 추가</button>
-          {newParticipants.length > 0 && (
-                        <button onClick={handleCancelLastAddedParticipant}>추가 취소</button>
-                    )}
-          {error && <p style={{ color: 'red' }}>{error}</p>}
-        </div>
+return (
+  <Box sx={{ display: 'flex', height: '100vh' }}>
+    <Paper sx={chatListStyle}>
+      <Box sx={newConversationSectionStyle}>
+        <TextField
+          label="참가자 ID 입력"
+          variant="outlined"
+          size="small"
+          value={participantInput}
+          onChange={(e) => setParticipantInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleAddParticipant();
+            }
+          }}
+          fullWidth
+        />
+        <Button 
+          variant="contained" 
+          onClick={handleAddParticipant}
+          disabled={!participantInput}
+        >
+          참가자 추가
+        </Button>
         {newParticipants.length > 0 && (
           <>
-            <div>추가된 참가자: {newParticipants.join(', ')}</div>
-            <button onClick={handleCreateConversation}>채팅 시작하기</button>
+            <Typography>추가된 참가자: {newParticipants.join(', ')}</Typography>
+            <Button variant="contained" onClick={handleCreateConversation}>
+              채팅 시작하기
+            </Button>
+            <Button variant="outlined" onClick={handleCancelLastAddedParticipant}>
+              추가 취소
+            </Button>
           </>
         )}
-        {/* sortedConversations 배열을 사용하여 정렬된 목록을 렌더링 */}
-        {
-          sortedConversations.map((conv, index) => (
-            <>
-              <div
-              key={index}
-              className={`chat-list-item ${selectedChatId === conv.conversation_id ? 'selected' : ''}`}
-              onClick={() => handleSelectChat(conv.conversation_id)}
-            >
-              {conv.participants.map(p => p.username).join(', ')}
-              </div>
-              <button onClick={() => handleDeleteConversation(conv.conversation_id)}>삭제</button>
-            </>
-          ))
-        }
-      </div>
-      <div className="chat-messages">
+        {error && <Typography color="error">{error}</Typography>}
+      </Box>
+      <List>
+        {sortedConversations.map((conv, index) => (
+          <ListItem
+            key={conv.conversation_id}
+            secondaryAction={
+              <IconButton edge="end" onClick={() => handleDeleteConversation(conv.conversation_id)}>
+                {/* <DeleteIcon /> */}
+              </IconButton>
+            }
+            selected={selectedChatId === conv.conversation_id}
+            onClick={() => handleSelectChat(conv.conversation_id)}
+          >
+            <ListItemText primary={conv.participants.map(p => p.username).join(', ')} />
+          </ListItem>
+        ))}
+      </List>
+    </Paper>
+    
+    <Box sx={chatWindowStyle}>
+      <Box sx={chatMessagesStyle}>
         {selectedChatId && conversations.find(conv => conv.conversation_id?.toString() === selectedChatId) ? (
-          <>
-            <h2>대화방: {conversations.find(conv => conv.conversation_id.toString() === selectedChatId.toString()).participants.map(p => p.username).join(', ')}</h2>
-            <div className="messages">
-              {conversations.find(conv => conv.conversation_id.toString() === selectedChatId)?.messages?.map((msg, index) => (
-                <div key={index} className="message">
-                  {`${msg.sender}: ${msg.content} (${formatDate(msg.timestamp)})`}
-                </div>
-              )) || <div>메시지가 없습니다.</div>}
-            </div>
-            <div className="message-input-container">
-              <input
-                type="text"
-                placeholder="메시지를 입력하세요"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
-              <button onClick={handleSendMessage}>전송</button>
-            </div>
-          </>
+          conversations.find(conv => conv.conversation_id.toString() === selectedChatId)?.messages?.map((msg, index) => (
+            <Typography key={index}>
+              {`${msg.sender}: ${msg.content} (${formatDate(msg.timestamp)})`}
+            </Typography>
+          ))
         ) : (
-          <div>대화를 선택해주세요.</div>
+          <Typography>대화를 선택해주세요.</Typography>
         )}
-      </div>
-    </div>
-  );
+      </Box>
+      <Box sx={messageInputStyle}>
+        <TextField
+          label="메시지를 입력하세요"
+          variant="outlined"
+          size="small"
+          fullWidth
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleSendMessage();
+            }
+          }}
+        />
+        <Button 
+          variant="contained" 
+          onClick={handleSendMessage}
+          sx={{ ml: 1 }}
+          disabled={!message}
+        >
+          전송
+        </Button>
+      </Box>
+    </Box>
+  </Box>
+);
 }
 

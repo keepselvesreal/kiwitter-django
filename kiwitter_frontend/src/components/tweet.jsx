@@ -5,7 +5,8 @@ import CommentsSection from './commentSection'; // 이 컴포넌트는 트윗의
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
+
+function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
     // console.log(tweet)
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditContent] = useState(tweet.content);
@@ -16,7 +17,10 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
     const [likesCount, setLikesCount] = useState(tweet.likes.length);
     const [isBookmarked, setIsBookmarked] = useState(tweet.isBookmarked);
     const [isFollowing, setIsFollowing] = useState(tweet.isFollowing);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
     const accessToken = localStorage.getItem("access token");
+    const currentUser = localStorage.getItem("username");
     const navigate = useNavigate();
 
     // 편집 모드 진입 처리
@@ -34,13 +38,28 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
     // 편집 저장 처리
     const handleSaveEdit = async () => {
         try {
-            await axios.patch(`http://localhost:8000/tweets/${tweet.author.id}/`, { content: editContent }, {
+            // 트윗 수정 API 호출
+            const response = await axios.patch(`http://localhost:8000/tweets/${tweet.id}/`, {
+                content: editContent
+            }, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
-            setIsEditing(false); // 편집 모드 종료
-            refreshTweets(); // 상태 변경 후 트윗 목록 새로고침
+    
+            // 편집 모드 종료
+            setIsEditing(false);
+    
+            // 수정된 트윗 데이터를 상위 컴포넌트에 반영하기 위한 호출
+            // 이 부분은 예시로 refreshTweets() 함수를 호출하는 것입니다.
+            // 실제 구현에서는 수정된 트윗 데이터를 직접 관리할 수도 있습니다.
+            refreshTweets();
+    
+            // 선택적으로, 수정된 트윗 내용을 직접 로컬 상태에 반영할 수도 있습니다.
+            // 이를 위해서는 상위 컴포넌트에서 현재 트윗의 상태를 관리하는 로직이 필요합니다.
+            // 예: onTweetUpdate(tweet.id, response.data);
+    
         } catch (error) {
             console.error('트윗 수정 중 오류 발생:', error);
+            // 에러 처리 로직 추가 (예: 사용자에게 에러 메시지 표시)
         }
     };
 
@@ -65,7 +84,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
             });
             setNewComment("");
             setShowCommentInput(false);
-            refreshTweets(); // 댓글 추가 후 목록 새로고침
+            // refreshTweets(); // 댓글 추가 후 목록 새로고침
         } catch (error) {
             console.error('댓글 달기 중 오류:', error);
         }
@@ -134,7 +153,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
         // tweet.imageUrl를 tweet 객체 내의 이미지 URL을 가리키는 실제 속성명으로 변경해야 할 수 있습니다.
         if (tweet.images && tweet.images.length > 0) {
             return (
-                <Box sx={{ my: 2 }}>
+                <Box sx={{ my: 2, display: 'flex', justifyContent: 'center'}}>
                     {tweet.images.map((image, index) => (
                     <img 
                         key={index} 
@@ -168,6 +187,34 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
             return part;
         });
     };
+
+    // 댓글 보기/숨기기 토글 함수
+    const toggleComments = () => {
+        setShowComments(!showComments);
+    };
+
+    const [commentsCount, setCommentsCount] = useState(0);
+
+    // API에서 댓글 개수를 가져오는 함수
+    const fetchCommentsCount = async () => {
+        try {
+            const response = await axios.get(`http://localhost:8000/tweets/${tweet.id}/comments-count/`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` },
+            });
+            setCommentsCount(response.data.comments_count); // 가정: API 응답이 { count: 댓글 개수 } 형태라고 가정
+        } catch (error) {
+            console.error('댓글 개수를 가져오는 중 오류 발생:', error);
+        }
+    };
+
+    const handleAvatarClick = () => {
+        navigate('/profile');
+    };
+
+    useEffect(() => {
+        fetchCommentsCount();
+    }, [tweet.id]); // tweet.id가 변경될 때마다 댓글 개수를 가져옴
+
 
     useEffect(() => {
         // 댓글 목록 초기 로딩 로직은 유지
@@ -220,10 +267,10 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
     }, [tweet.id, tweet.author.id,]); 
 
     return (
-        <Card sx={{ marginBottom: 2 }}>
+        <Card sx={{ marginBottom: 2, width: "60%" }}>
             <CardContent>
-                <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Avatar src={tweet.authorProfileImageUrl} alt="Author" />
+                <Box display="flex" alignItems="center" gap={2}>
+                    <Avatar src={tweet.authorProfileImageUrl} alt="Author" onClick={handleAvatarClick} />
                     <Typography variant="body1">{tweet.author.username}</Typography>
                 </Box>
                 {isEditing ? (
@@ -243,6 +290,8 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
                 )}
                 <Typography variant="body2">좋아요 {likesCount}명</Typography>
                 <TweetActions
+                    currentUser={currentUser}
+                    tweetAuthor={tweet.author.username}
                     onEdit={handleEditClick}
                     onCancelEdit={handleCancelEdit}
                     onSaveEdit={handleSaveEdit}
@@ -256,15 +305,16 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle }) {
                     onFollowToggle={handleFollowToggle}
                 />
                 <Box>
-                    <Button onClick={() => setShowCommentInput(!showCommentInput)}>{showCommentInput ? "취소" : "댓글 달기"}</Button>
-                    {showCommentInput && (
+                    <Button onClick={toggleComments}>
+                        {showComments ? `댓글 접기` : `댓글(${commentsCount}) 펴기`}
+                    </Button>
+                    {showComments && (
                         <Box>
                             <TextField fullWidth value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="댓글을 입력하세요" />
                             <Button onClick={handleCommentSubmit}>입력</Button>
                         </Box>
                     )}
-                    <Button onClick={() => setShowComments(!showComments)}>{showComments ? "댓글 숨기기" : "댓글 보기"}</Button>
-                    {showComments && <CommentsSection tweetId={tweet.id} commentsUpdated={refreshTweets} />}
+                    {showComments && <CommentsSection tweetId={tweet.id} />}
                 </Box>
             </CardContent>
         </Card>

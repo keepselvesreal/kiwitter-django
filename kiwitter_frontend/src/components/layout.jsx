@@ -2,6 +2,8 @@ import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { Drawer, List, ListItem, ListItemText, Box, Typography } from '@mui/material';
 
+import WhoToFollow from './whoToFollow';
+
 const drawerWidth = 240;
 
 const Layout = () => {
@@ -24,7 +26,8 @@ const Layout = () => {
                         { text: 'Home', to: '/' },
                         { text: 'Bookmarks', to: '/bookmarks' },
                         { text: 'Chat', to: '/chat' },
-                        { text: 'My Vibe', to: '/mood-painter'},
+                        // { text: 'My Vibe', to: '/mood-painter'},
+                        { text: 'My Vibe', to: '/my-vibe'},
                         { text: 'Profile', to: '/profile' },
                     ].map((item) => (
                         <ListItem button key={item.text} component={Link} to={item.to}>
@@ -40,6 +43,7 @@ const Layout = () => {
                 {/* Outlet을 사용하여 자식 라우트 컴포넌트를 렌더링 */}
                 <Outlet />
             </Box>
+            <WhoToFollow />
             <footer style={{ width: '100%', position: 'fixed', bottom: 0 }}>
                 <Typography variant="body2" color="text.secondary" align="center" sx={{ p: 2 }}>
                     © 2024 올해는 나의 것!
