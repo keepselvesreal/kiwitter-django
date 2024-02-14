@@ -60,9 +60,10 @@ function CommentsSection({ tweetId, commentsUpdated }) {
 
     const handleReplyDeleted = (commentId, replyId) => {
         const updatedComments = comments.map(comment => {
+            // 대댓글이 포함된 댓글을 찾음
             if (comment.id === commentId) {
-                // Filter out the deleted reply
-                const updatedReplies = comment.replies.filter(reply => reply.id !== replyId);
+                // replies 배열이 존재하는지 확인하고, 없으면 빈 배열로 초기화
+                const updatedReplies = comment.replies ? comment.replies.filter(reply => reply.id !== replyId) : [];
                 return { ...comment, replies: updatedReplies };
             }
             return comment;
