@@ -1,49 +1,91 @@
 import React, { useState } from 'react';
-import { useUserContext } from '../components/UserContext';
-// import { useAuthServiceContext } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useUserContext } from '../components/UserContext';
+import { Box, TextField, Button, Typography, Container, CircularProgress, IconButton } from '@mui/material';
+import localImage from '../assets/dragon.png';
 
 const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    // const { loginUser } = useUserContext(); // 컨텍스트에서 loginUser 함수 사용
-    const { loginUser } =useUserContext();
-    const navigate = useNavigate(); // 페이지 리다이렉션을 위한 히스토리 객체
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    const { loginUser } = useUserContext();
+    const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        
+        setError('');
+        setIsLoading(true);
+
         try {
-            // loginUser 함수를 호출하여 로그인
-            // await loginUser(username, password);
             await loginUser(username, password);
-            // 로그인 성공 후 리다이렉트, 예를 들어 홈 페이지로
-            navigate('/'); // 성공적으로 로그인한 후의 리다이렉션 경로
+            navigate('/');
         } catch (error) {
-            // 로그인 실패 처리, 에러 메시지 표시 등
             console.error("Login error: ", error.response ? error.response.data : 'Error');
-            // 여기서 사용자에게 에러 메시지를 보여주는 로직을 추가할 수 있습니다.
+            setError('Failed to login. Please check your credentials.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
-            />
-            <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-            />
-            <button type="submit">Login</button>
-        </form>
+        <Container component="main" maxWidth="xs">
+            <Box
+                sx={{
+                    marginTop: 8,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                }}
+            >
+                <IconButton edge="start" color="inherit" aria-label="logo">
+                    <img src={localImage} alt="Logo" style={{ width: '150px', height: '150px' }} />
+                </IconButton>
+                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        id="username"
+                        label="Username"
+                        name="username"
+                        autoComplete="username"
+                        autoFocus
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        name="password"
+                        label="Password"
+                        type="password"
+                        id="password"
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        sx={{ mt: 3, mb: 2 }}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? <CircularProgress size={24} /> : '로그인'}
+                    </Button>
+                    {error && (
+                        <Typography color="error" textAlign="center">
+                            {error}
+                        </Typography>
+                    )}
+                </Box>
+            </Box>
+        </Container>
     );
 };
 
 export default Login;
+
 

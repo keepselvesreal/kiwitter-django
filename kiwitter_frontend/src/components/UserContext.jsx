@@ -101,15 +101,15 @@ export const UserContextProvider = ({ children }) => {
   const refreshAccessToken = async () => {
     try {
         const refreshToken = localStorage.getItem("refresh token")
-        await axios.post(
-            'http://127.0.0.1:8000/token/refresh/', 
-            {},
-            {
-              headers: { 'Authorization': `JWT ${refreshToken}` }
-            } 
-        )
+        const response = await axios.post('http://127.0.0.1:8000/api/token/refresh/', {
+          refresh: refreshToken
+        });
+        const newAccessToken = response.data.access;
+        localStorage.setItem("access token", newAccessToken);
+    return newAccessToken;
     } catch (refreshError) {
-        return Promise.reject(refreshError)
+      console.error('액세스 토큰 새로고침 오류:', refreshError);
+      throw refreshError;
     }
   }
 

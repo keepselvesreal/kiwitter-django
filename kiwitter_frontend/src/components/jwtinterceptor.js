@@ -32,8 +32,7 @@ export const useAxiosWithJwtInterceptor = () => {
     if ((error.response.status === 401 || error.response.status === 403) && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        await refreshAccessToken();
-        const newAccessToken = localStorage.getItem("access token");
+        const newAccessToken = await refreshAccessToken();
         originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
