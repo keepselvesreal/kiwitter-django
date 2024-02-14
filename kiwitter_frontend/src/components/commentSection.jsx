@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Comment from './comment'; // 컴포넌트 이름 확인 필요
 
-function CommentsSection({ tweetId }) {
+function CommentsSection({ tweetId, commentsUpdated }) {
     const [comments, setComments] = useState([]);
     const accessToken = localStorage.getItem("access token");
 
     useEffect(() => {
         fetchComments();
-    }, [tweetId]);
+    }, [tweetId, commentsUpdated]);
 
     const fetchComments = async () => {
         try {

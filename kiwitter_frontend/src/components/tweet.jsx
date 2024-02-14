@@ -22,6 +22,8 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
     const accessToken = localStorage.getItem("access token");
     const currentUser = localStorage.getItem("username");
     const navigate = useNavigate();
+    // 댓글 추가 성공 후 CommentsSection의 댓글 목록을 업데이트하기 위한 상태 변수 추가
+    const [commentsUpdated, setCommentsUpdated] = useState(false);
 
     // 편집 모드 진입 처리
     const handleEditClick = () => setIsEditing(true);
@@ -85,6 +87,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
             setNewComment("");
             setShowCommentInput(false);
             // refreshTweets(); // 댓글 추가 후 목록 새로고침
+            setCommentsUpdated(!commentsUpdated); // 댓글 추가 후 CommentsSection의 댓글 목록 업데이트 트리거
         } catch (error) {
             console.error('댓글 달기 중 오류:', error);
         }
@@ -279,6 +282,12 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
                         multiline
                         value={editContent}
                         onChange={handleContentChange}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) { // shift + enter는 줄바꿈을 위해 예외 처리
+                                e.preventDefault(); // 폼 제출 방지
+                                handleSaveEdit();
+                            }
+                        }}
                         margin="dense"
                     />
                 ) : (
@@ -310,11 +319,21 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
                     </Button>
                     {showComments && (
                         <Box>
-                            <TextField fullWidth value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="댓글을 입력하세요" />
+                            <TextField 
+                                fullWidth 
+                                value={newComment} 
+                                onChange={(e) => setNewComment(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault(); // 폼 제출 방지
+                                        handleCommentSubmit(e);
+                                    }
+                                }}
+                                placeholder="댓글을 입력하세요" />
                             <Button onClick={handleCommentSubmit}>입력</Button>
                         </Box>
                     )}
-                    {showComments && <CommentsSection tweetId={tweet.id} />}
+                    {showComments && <CommentsSection tweetId={tweet.id} commentsUpdated={commentsUpdated} />}
                 </Box>
             </CardContent>
         </Card>

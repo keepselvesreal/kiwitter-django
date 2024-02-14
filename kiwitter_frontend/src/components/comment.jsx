@@ -92,6 +92,12 @@ function Comment({
                         variant="outlined"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault(); // 폼 제출 방지
+                                handleAction('edit');
+                            }
+                        }}
                         margin="dense"
                     />
                     <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
@@ -118,6 +124,12 @@ function Comment({
                         variant="outlined"
                         value={replyContent}
                         onChange={(e) => setReplyContent(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault(); // 폼 제출 방지
+                                handleAction('reply');
+                            }
+                        }}
                         placeholder="대댓글 작성..."
                         margin="dense"
                         sx={{ mr: 1 }}
