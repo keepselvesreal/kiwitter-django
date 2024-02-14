@@ -329,8 +329,18 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
                                         handleCommentSubmit(e);
                                     }
                                 }}
-                                placeholder="댓글을 입력하세요" />
+                                placeholder="댓글을 입력하세요" 
+                                size="small" 
+                            />
                             <Button onClick={handleCommentSubmit}>입력</Button>
+                            <Button
+                                onClick={() => {
+                                    setNewComment("");
+                                    setShowCommentInput(false);
+                                }}
+                                >
+                                취소
+                            </Button>
                         </Box>
                     )}
                     {showComments && <CommentsSection tweetId={tweet.id} commentsUpdated={commentsUpdated} />}

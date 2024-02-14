@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Box, TextField, Button } from '@mui/material';
+import { Box, TextField, Button, Select, MenuItem, FormControl, InputLabel, Paper } from '@mui/material';
 import { generatePrompt, generateImage } from "./ImageGeneration";
 
 
@@ -69,46 +69,55 @@ function TweetForm({ addTweet }) {
   };
 
   return (
-    <Box sx={{ margin: 2, width: "60%" }}>
+    <Paper elevation={3} sx={{ p: 3, margin: 'auto', maxWidth: 600, flexGrow: 1 }}>
       <form onSubmit={handleSubmit}>
-        <TextField
-          fullWidth
-          label="메시지를 입력하세요..."
-          multiline
-          rows={4}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) { // shift + enter는 줄바꿈을 위해 예외 처리
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <TextField
+            fullWidth
+            label="메시지를 입력하세요..."
+            multiline
+            rows={4}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) { // shift + enter는 줄바꿈을 위해 예외 처리
                 e.preventDefault(); // 폼 제출 방지
                 handleSubmit(e);
-            }
-        }}
-          variant="outlined"
-          margin="normal"
-        />
-        {imagePreviews.map((preview, index) => (
-          <Box key={index} sx={{ textAlign: 'center', mt: 2 }}>
-            <img src={preview} alt="미리보기" style={{ maxWidth: '100%', height: 'auto' }} />
-            <Button variant="contained" onClick={() => removeImage(index)}>제거</Button>
+              }
+            }}
+            variant="outlined"
+            margin="normal"
+          />
+          {imagePreviews.map((preview, index) => (
+            <Box key={index} sx={{ textAlign: 'center', mt: 2 }}>
+              <img src={preview} alt="미리보기" style={{ maxWidth: '100%', height: 'auto' }} />
+              <Button variant="outlined" color="error" size="small" onClick={() => removeImage(index)}>제거</Button>
+            </Box>
+          ))}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Button variant="outlined" size="small" component="label">
+              이미지 선택
+              <input type="file" hidden multiple ref={fileInputRef} onChange={handleImageChange} />
+            </Button>
+            <Button variant="outlined" size="small" onClick={() => generateAndAddImage(false)}>이미지 생성</Button>
+            <Button variant="outlined" size="small" onClick={() => generateAndAddImage(true)}>이미지 생성 with AI</Button>
+            <FormControl size="small" sx={{ minWidth: 120 }}>
+              <InputLabel>장르 선택</InputLabel>
+              <Select
+                value={genre}
+                label="장르 선택"
+                onChange={(e) => setGenre(e.target.value)}
+              >
+                {genres.map(g => <MenuItem key={g} value={g}>{g}</MenuItem>)}
+              </Select>
+            </FormControl>
           </Box>
-        ))}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
-          <Button variant="contained" component="label">
-            이미지 선택
-            <input type="file" hidden multiple ref={fileInputRef} onChange={handleImageChange} />
+          <Button type="submit" variant="contained" color="secondary" sx={{ mt: 2 }}>
+            작성
           </Button>
-          <Button onClick={() => generateAndAddImage(false)}>이미지 생성</Button>
-          <Button onClick={() => generateAndAddImage(true)}>이미지 생성 with AI</Button>
-          <TextField select value={genre} onChange={(e) => setGenre(e.target.value)} sx={{ minWidth: 120 }}>
-            {genres.map(g => <option key={g} value={g}>{g}</option>)}
-          </TextField>
         </Box>
-        <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
-          작성
-        </Button>
       </form>
-    </Box>
+    </Paper>
   );
 }
 

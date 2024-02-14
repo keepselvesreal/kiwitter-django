@@ -54,6 +54,7 @@ from chats.views import (
     delete_conversation, 
     get_conversations, 
     get_messages)
+from rest_framework_simplejwt.views import TokenRefreshView
 
 
 router = DefaultRouter()
@@ -99,6 +100,7 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # path('users/', include('allauth.urls')),
     path('api/recommend-users/', recommend_random_users, name='recommend-users'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 
 websocket_urlpatterns = [

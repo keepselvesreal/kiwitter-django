@@ -7,11 +7,13 @@ import { Box } from '@mui/system';
 
 import TweetForm from './tweetForm';
 import Timeline from './timeline';
+import { useAxiosWithJwtInterceptor } from './jwtinterceptor';
 
 export default function Home() {
     const { logoutUser } = useUserContext();
     const navigate = useNavigate();
     const [tweets, setTweets] = useState([]);
+    const axiosInstance = useAxiosWithJwtInterceptor();
     const accessToken = localStorage.getItem("access token");
 
     useEffect(() => {
@@ -20,7 +22,7 @@ export default function Home() {
 
     const fetchTweets = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/tweets/', {
+            const response = await axiosInstance.get('http://localhost:8000/tweets/', {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             setTweets(response.data); // 트윗 목록 상태 업데이트
@@ -45,7 +47,9 @@ export default function Home() {
     return (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <TweetForm addTweet={addTweet} />
-                <Timeline tweets={tweets} refreshTweets={refreshTweets}/>
+                <Box sx={{ mt: 5 }}>
+                    <Timeline tweets={tweets} refreshTweets={refreshTweets}/>
+                </Box>
                 {/* 로그아웃 버튼을 우측 상단에 배치 */}
                 <button 
                     onClick={handleLogout} 

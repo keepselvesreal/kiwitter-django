@@ -110,8 +110,8 @@ function Comment({
                     <Typography variant="body1">{comment.content}</Typography>
                     {isAuthor && (
                         <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                            <Button size="small" onClick={() => setEditMode(true)}>수정하기</Button>
-                            <Button size="small" onClick={() => handleAction('delete')}>삭제하기</Button>
+                            <Button size="small" onClick={() => setEditMode(true)} color="error">수정하기</Button>
+                            <Button size="small" onClick={() => handleAction('delete')} color="error">삭제하기</Button>
                         </Box>
                     )}
                 </>

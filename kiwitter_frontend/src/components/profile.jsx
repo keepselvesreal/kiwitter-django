@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { TextField, Button, Box, Avatar, Typography, List, ListItem, ListItemText, Divider } from '@mui/material';
-import { useUserContext } from './UserContext';
+import { TextField, Button, Box, Avatar, Typography, List, ListItem, ListItemAvatar, ListItemText, Divider, Paper } from '@mui/material';
 
 import Tweet from './tweet';
+
+const itemsPerPage = 3; // 한 페이지에 표시할 항목 수
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -14,52 +15,48 @@ const Profile = () => {
   const [tweets, setTweets] = useState([]);
   const [comments, setComments] = useState([]);
   const [likedTweets, setLikedTweets] = useState([]);
-  const authToken = localStorage.getItem('token'); // user 변수명이 위에서 사용 중이라 일단 브라우저 저장소에서 직접 토큰을 가져옴
+  const [currentPage, setCurrentPage] = useState({ tweets: 1, comments: 1, likedTweets: 1 });
   const accessToken = localStorage.getItem("access token");
   const userId = localStorage.getItem("user_id");
 
+  // 스크롤바를 숨기는 스타일
+const hiddenScrollbarStyle = {
+  '&::-webkit-scrollbar': { display: 'none' },
+  scrollbarWidth: 'none', // Firefox용
+};
+
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/users/${userId}/`, {
+        const userResponse = await axios.get(`http://localhost:8000/api/users/${userId}/`, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
-        setUser(response.data);
-        setUsername(response.data.username);
-        setShortDescription(response.data.short_description);
+        setUser(userResponse.data);
+        setUsername(userResponse.data.username);
+        setShortDescription(userResponse.data.short_description);
+
+        const tweetsResponse = await axios.get(`http://localhost:8000/api/user-tweets/`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+        setTweets(tweetsResponse.data);
+
+        const commentsResponse = await axios.get(`http://localhost:8000/api/user-comments/`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+        setComments(commentsResponse.data);
+
+        const likedTweetsResponse = await axios.get(`http://localhost:8000/api/user-liked-tweets/`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
+        setLikedTweets(likedTweetsResponse.data);
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('Error fetching data:', error);
       }
     };
 
-    fetchUser();
+    fetchData();
   }, [userId, editMode]);
-
-  useEffect(() => {
-      const fetchTweets = async () => {
-          const response = await axios.get(`http://localhost:8000/api/user-tweets/`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
-          setTweets(response.data);
-      };
-      const fetchComments = async () => {
-          const response = await axios.get(`http://localhost:8000/api/user-comments/`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
-          setComments(response.data);
-      };
-      const fetchLikedTweets = async () => {
-          const response = await axios.get(`http://localhost:8000/api/user-liked-tweets/`, { headers: { 'Authorization': `Bearer ${accessToken}` } });
-          setLikedTweets(response.data);
-      };
-
-      fetchTweets();
-      fetchComments();
-      fetchLikedTweets();
-  }, [userId]);
 
   const handleSave = async () => {
     const formData = new FormData();
     formData.append('username', username);
     formData.append('short_description', shortDescription);
     if (profileImage) {
-      formData.append('profile_image', profileImage);
+      formData.append('profile_image', profileImage, profileImage.name);
     }
 
     try {
@@ -70,24 +67,63 @@ const Profile = () => {
         }
       });
       setEditMode(false);
-      // Optionally re-fetch user data here or use response data to update UI
     } catch (error) {
       console.error('Error updating user:', error);
     }
+  };
+
+  const changePage = (section, pageNumber) => {
+    setCurrentPage({ ...currentPage, [section]: pageNumber });
   };
 
   if (!user) {
     return <Typography>Loading...</Typography>;
   }
 
+  // 페이지 별로 항목을 계산하는 함수
+  const getPageItems = (items, page) => items.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
+  // 페이지 번호를 생성하는 함수
+  const renderPageNumbers = (items, section) => {
+    const pageCount = Math.ceil(items.length / itemsPerPage);
+    return Array.from({ length: pageCount }, (_, i) => (
+      <Button key={i} onClick={() => changePage(section, i + 1)} variant={currentPage[section] === i + 1 ? "contained" : "text"}>
+        {i + 1}
+      </Button>
+    ));
+  };
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, marginTop: 10}}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, marginTop: 5 }}>
       {editMode ? (
         <Box>
-          <TextField variant="outlined" label="Username" value={username} onChange={(e) => setUsername(e.target.value)} fullWidth />
-          <TextField variant="outlined" label="Short Description" value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} fullWidth multiline rows={4} sx={{ mt: 2 }} />
-          <input type="file" onChange={(e) => setProfileImage(e.target.files[0])} style={{ marginTop: '20px' }} />
-          <Button variant="contained" onClick={handleSave} sx={{ mt: 2 }}>
+          <TextField
+            variant="outlined"
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            fullWidth
+          />
+          <TextField
+            variant="outlined"
+            label="Short Description"
+            value={shortDescription}
+            onChange={(e) => setShortDescription(e.target.value)}
+            fullWidth
+            multiline
+            rows={4}
+            sx={{ mt: 2 }}
+          />
+          <input
+            type="file"
+            onChange={(e) => setProfileImage(e.target.files[0])}
+            style={{ marginTop: '20px' }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleSave}
+            sx={{ mt: 2 }}
+          >
             Save
           </Button>
         </Box>
@@ -99,65 +135,53 @@ const Profile = () => {
           <Button variant="outlined" onClick={() => setEditMode(true)} sx={{ mt: 1 }}>
             Edit Profile
           </Button>
-          <Typography sx={{ mt: 3, mb: 1 }}>팔로우 중인 사용자</Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center', mb: 2 }}>
-            {user.following_ids.map((followingId, index) => (
-              <Box key={index} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Avatar src={`http://localhost:8000/profile_images/${followingId}.jpg`} alt={`User ${followingId}`} sx={{ width: 50, height: 50 }} />
-                <Typography sx={{ mt: 0.5 }}>{followingId}</Typography>
-              </Box>
-            ))}
-          </Box>
-          <Typography variant="h6">작성 트윗</Typography>
-          {tweets.map(tweet => (
-              <Box key={tweet.id} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'left', width: '100%' }}>
-                <Tweet tweet={tweet} />
-              </Box>
-          ))}
-
-            <Typography variant="h6">작성 댓글</Typography>
-            <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-              {comments.length > 0 ? (
-                comments.map((comment, index) => (
-                  <React.Fragment key={comment.id}>
-                    <ListItem alignItems="flex-start" sx={{ justifyContent: 'center' }}>
-                      <ListItemText
-                        primary={`댓글: ${comment.content}`}
-                        secondary={
-                          <Typography
-                            sx={{ display: 'inline' }}
-                            component="span"
-                            variant="body2"
-                            color="text.primary"
-                          >
-                            날짜: {new Date(comment.created_at).toLocaleDateString("ko-KR")}
-                          </Typography>
-                        }
-                      />
-                    </ListItem>
-                    {index < comments.length - 1 && <Divider variant="inset" component="li" />}
-                  </React.Fragment>
-                ))
-              ) : (
-                <ListItem>
-                  <ListItemText primary="댓글이 없습니다." />
-                </ListItem>
-              )}
-            </List>
-
-            <Typography variant="h6">좋아요 누른 트윗</Typography>
-            {likedTweets.map(tweet => (
-              <Box key={tweet.id} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'left', width: '100%' }}>
-                <Tweet tweet={tweet} />
-              </Box>
-            ))}
         </Box>
       )}
+      {/* Following Users Section */}
+      <Typography variant="h5" gutterBottom sx={{ mt: 3, mb: 0, textAlign: 'center', fontWeight: 'bold' }}>팔로우 중인 사용자</Typography>
+      <Box component={Paper} elevation={4} sx={{ p: 2, mt: 2, width: '100%', maxWidth: 600, overflowX: 'auto' }}>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          {user.following_ids?.map((followingId, index) => (
+            <Box key={index} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 100 }}>
+              <Avatar src={`http://localhost:8000/profile_images/${followingId}.jpg`} alt={`User ${followingId}`} sx={{ width: 50, height: 50 }} />
+              <Typography sx={{ mt: 0.5 }}>{followingId}</Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
+      {/* Tweets, Comments, and Liked Tweets Sections */}
+      {['tweets', 'comments', 'likedTweets'].map((section) => (
+        <React.Fragment key={section}>
+          <Typography variant="h5" gutterBottom sx={{ mt: 5, mb: 0, textAlign: 'center', fontWeight: 'bold' }}>
+              {section === 'tweets' ? '작성 트윗' : section === 'comments' ? '작성 댓글' : '좋아요 누른 트윗'}
+          </Typography>
+          <Box component={Paper} elevation={4} sx={{ p: 2, mt: 2, width: '100%', maxWidth: 600, overflowY: 'scroll', maxHeight: 300, ...hiddenScrollbarStyle }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}> {/* 트윗 가운데 정렬을 위한 수정 */}
+              {section === 'tweets' && getPageItems(tweets, currentPage.tweets).map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
+              {section === 'comments' && (
+                <List sx={{ width: '100%' }}>
+                  {getPageItems(comments, currentPage.comments).map(comment => (
+                    <ListItem key={comment.id} alignItems="flex-start">
+                      <ListItemText primary={`댓글: ${comment.content}`} />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+              {section === 'likedTweets' && getPageItems(likedTweets, currentPage.likedTweets).map(likedTweet => <Tweet key={likedTweet.id} tweet={likedTweet} />)}
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2 }}>
+            {renderPageNumbers(section === 'tweets' ? tweets : section === 'comments' ? comments : likedTweets, section)}
+          </Box>
+      </React.Fragment>
+      ))}
     </Box>
   );
 };
 
 export default Profile;
+
 
 
 

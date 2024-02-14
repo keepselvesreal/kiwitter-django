@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState } from 'react';
 import axios from 'axios';
 
 // 사용자 정보를 위한 컨텍스트 생성
-const UserContext = createContext();
+export const UserContext = createContext();
 
 // 컨텍스트를 사용하기 쉽게 하는 커스텀 훅
 export function useUserContext() {
