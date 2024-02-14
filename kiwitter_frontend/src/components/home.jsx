@@ -3,6 +3,7 @@ import { useUserContext } from '../components/UserContext';
 // import { useAuthServiceContext } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Box } from '@mui/system';
 
 import TweetForm from './tweetForm';
 import Timeline from './timeline';
@@ -42,8 +43,7 @@ export default function Home() {
     const refreshTweets = () => fetchTweets();
 
     return (
-        <div>
-            <div style={{ position: 'relative' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <TweetForm addTweet={addTweet} />
                 <Timeline tweets={tweets} refreshTweets={refreshTweets}/>
                 {/* 로그아웃 버튼을 우측 상단에 배치 */}
@@ -57,8 +57,7 @@ export default function Home() {
                     }}>
                     Logout
                 </button>
-            </div>      
-        </div>       
+            </Box> 
     );
 }
 

@@ -78,6 +78,12 @@ function TweetForm({ addTweet }) {
           rows={4}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { // shift + enter는 줄바꿈을 위해 예외 처리
+                e.preventDefault(); // 폼 제출 방지
+                handleSubmit(e);
+            }
+        }}
           variant="outlined"
           margin="normal"
         />

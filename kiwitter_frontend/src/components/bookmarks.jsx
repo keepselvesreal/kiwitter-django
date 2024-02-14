@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Box } from '@mui/material';
+
 import Tweet from './tweet';
+
 
 export default function Bookmarks() {
     const [bookmarkedTweets, setBookmarkedTweets] = useState([]);
@@ -33,7 +36,7 @@ export default function Bookmarks() {
     };
 
     return (
-        <div>
+        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h2>북마크한 트윗</h2>
             {bookmarkedTweets.length > 0 ? (
                 bookmarkedTweets.map(tweet => (
@@ -47,6 +50,6 @@ export default function Bookmarks() {
             ) : (
                 <p>북마크한 트윗이 없습니다.</p>
             )}
-        </div>
+        </Box>
     );
 }

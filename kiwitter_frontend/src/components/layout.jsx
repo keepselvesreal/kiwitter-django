@@ -38,7 +38,7 @@ const Layout = () => {
             </Drawer>
             <Box
                 component="main"
-                sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
+                sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3}}
             >
                 {/* Outlet을 사용하여 자식 라우트 컴포넌트를 렌더링 */}
                 <Outlet />

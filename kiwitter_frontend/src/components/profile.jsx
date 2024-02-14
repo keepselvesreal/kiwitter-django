@@ -99,8 +99,8 @@ const Profile = () => {
           <Button variant="outlined" onClick={() => setEditMode(true)} sx={{ mt: 1 }}>
             Edit Profile
           </Button>
-          <Typography sx={{ mt: 1 }}>팔로우 중인 사용자</Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center' }}>
+          <Typography sx={{ mt: 3, mb: 1 }}>팔로우 중인 사용자</Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center', mb: 2 }}>
             {user.following_ids.map((followingId, index) => (
               <Box key={index} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <Avatar src={`http://localhost:8000/profile_images/${followingId}.jpg`} alt={`User ${followingId}`} sx={{ width: 50, height: 50 }} />
@@ -110,7 +110,7 @@ const Profile = () => {
           </Box>
           <Typography variant="h6">작성 트윗</Typography>
           {tweets.map(tweet => (
-              <Box key={tweet.id} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Box key={tweet.id} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'left', width: '100%' }}>
                 <Tweet tweet={tweet} />
               </Box>
           ))}
@@ -146,11 +146,11 @@ const Profile = () => {
             </List>
 
             <Typography variant="h6">좋아요 누른 트윗</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              {likedTweets.map(tweet => (
-                <Tweet key={tweet.id} tweet={tweet} />
-              ))}
-            </Box>
+            {likedTweets.map(tweet => (
+              <Box key={tweet.id} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'left', width: '100%' }}>
+                <Tweet tweet={tweet} />
+              </Box>
+            ))}
         </Box>
       )}
     </Box>
