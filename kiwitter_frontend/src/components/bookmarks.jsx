@@ -3,15 +3,17 @@ import axios from 'axios';
 import { Box } from '@mui/material';
 
 import Tweet from './tweet';
+import { useAxiosWithJwtInterceptor } from './jwtinterceptor';
 
 
 export default function Bookmarks() {
     const [bookmarkedTweets, setBookmarkedTweets] = useState([]);
     const accessToken = localStorage.getItem("access token");
+    const axiosInstance = useAxiosWithJwtInterceptor();
 
     const fetchBookmarkedTweets = async () => {
         try {
-            const response = await axios.get('http://localhost:8000/api/bookmarks/', {
+            const response = await axiosInstance.get('http://localhost:8000/api/bookmarks/', {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
             const tweetsWithAbsoluteUrls = response.data.map(tweet => ({

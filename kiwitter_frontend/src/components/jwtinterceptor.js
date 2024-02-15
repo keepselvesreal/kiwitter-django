@@ -33,6 +33,7 @@ export const useAxiosWithJwtInterceptor = () => {
       originalRequest._retry = true;
       try {
         const newAccessToken = await refreshAccessToken();
+        console.log("newAccessToken in interceptor: ", newAccessToken)
         originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {

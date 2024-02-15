@@ -10,15 +10,9 @@ import Timeline from './timeline';
 import { useAxiosWithJwtInterceptor } from './jwtinterceptor';
 
 export default function Home() {
-    const { logoutUser } = useUserContext();
-    const navigate = useNavigate();
     const [tweets, setTweets] = useState([]);
     const axiosInstance = useAxiosWithJwtInterceptor();
     const accessToken = localStorage.getItem("access token");
-
-    useEffect(() => {
-        fetchTweets();
-    }, []);
 
     const fetchTweets = async () => {
         try {
@@ -30,12 +24,10 @@ export default function Home() {
             console.error('트윗 로딩 중 오류 발생:', error);
         }
     };
-
-    const handleLogout = () => {
-        console.log('Logging out...');
-        logoutUser();
-        navigate("/login"); // 로그아웃 후 로그인 페이지로 리디렉션
-    };
+    
+    useEffect(() => {
+        fetchTweets();
+    }, []);
 
     const addTweet = (newTweet) => {
         console.log("newTweet", newTweet)

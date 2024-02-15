@@ -62,8 +62,10 @@ export const UserContextProvider = ({ children }) => {
       // setUser(userData);
       
       const user_id = response.data.user_id
+      const user_profile_image = response.data.profile_image
       localStorage.setItem("user_id", user_id)
       localStorage.setItem("isLoggedIn", "true")
+      localStorage.setItem("user_profile_image", user_profile_image)
       console.log("user_id: ", user_id)
 
       const {access, refresh} = response.data;
@@ -84,6 +86,9 @@ export const UserContextProvider = ({ children }) => {
     localStorage.setItem("isLoggedIn", "false")
     localStorage.removeItem("user_id")
     localStorage.removeItem("username");
+    localStorage.removeItem("user_profile_image");
+    localStorage.removeItem("access token");
+    localStorage.removeItem("refresh token");
     setIsLoggedIn(false);
 
     try {

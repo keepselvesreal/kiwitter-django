@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useUserContext } from '../components/UserContext';
 import { Box, TextField, Button, Typography, Container, CircularProgress, IconButton } from '@mui/material';
 import localImage from '../assets/dragon.png';
@@ -75,6 +75,11 @@ const Login = () => {
                     >
                         {isLoading ? <CircularProgress size={24} /> : '로그인'}
                     </Button>
+                    <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
+                        <Link to="/register" style={{ textDecoration: 'none' }}>
+                            회원가입하러 가기
+                        </Link>
+                    </Typography>
                     {error && (
                         <Typography color="error" textAlign="center">
                             {error}
@@ -87,5 +92,6 @@ const Login = () => {
 };
 
 export default Login;
+
 
 

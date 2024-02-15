@@ -70,7 +70,15 @@ function TweetForm({ addTweet }) {
   };
 
   return (
-    <Paper elevation={3} sx={{ width: '100%', maxWidth: 500, p: 3, flexGrow: 0 }}>
+    <Paper elevation={3} 
+    sx={{ 
+      width: '100%', 
+      maxWidth: 500, 
+      p: 3, 
+      flexGrow: 0,
+      borderRadius: '16px',
+      }}
+    >
       <form onSubmit={handleSubmit}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
@@ -121,7 +129,7 @@ function TweetForm({ addTweet }) {
               </Select>
             </FormControl>
           </Box>
-          <Button type="submit" variant="contained" color="secondary" sx={{ mt: 2 }}>
+          <Button type="submit" variant="contained" sx={{ mt: 2, color: "black", fontWeight: 'bold', backgroundColor: "lightgreen" }}>
             작성
           </Button>
         </Box>

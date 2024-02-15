@@ -1,11 +1,12 @@
 import React from 'react';
-import { Button, Box } from '@mui/material';
-
+import { Button, Box, IconButton } from '@mui/material';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 function TweetActions({ 
     isLiked, 
     isBookmarked, 
     isFollowing, 
     onLike, 
+    likeCounts,
     onBookmark, 
     onFollowToggle, 
     onEdit, 
@@ -21,6 +22,12 @@ function TweetActions({
 
     return (
         <Box display="flex" justifyContent="space-around" marginY={2}>
+            <Box>
+                <IconButton color="secondary">
+                    <FavoriteIcon color="error" />
+                </IconButton>
+                <span>{likeCounts}</span>
+            </Box>
             <Button onClick={onLike}>{isLiked ? "좋아요 취소" : "좋아요"}</Button>
             <Button onClick={onBookmark}>{isBookmarked ? "북마크 취소" : "북마크"}</Button>
             {showFollowButton && <Button onClick={onFollowToggle}>{isFollowing ? "언팔로우" : "팔로우"}</Button>}

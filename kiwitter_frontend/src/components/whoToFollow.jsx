@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Typography, Avatar, List, ListItem, ListItemAvatar, ListItemText, Divider } from '@mui/material';
 import axios from 'axios';
 
+import { useAxiosWithJwtInterceptor } from './jwtinterceptor';
+
 // 사용자 추천 목록 컴포넌트
 const WhoToFollow = () => {
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const accessToken = localStorage.getItem('access token');
+  const axiosInstance = useAxiosWithJwtInterceptor();
 
   // 팔로우/언팔로우 상태 토글 함수
   const toggleFollow = async (userId, isCurrentlyFollowing) => {
@@ -15,7 +18,7 @@ const WhoToFollow = () => {
       : `http://localhost:8000/api/follow/${userId}/`;
     
     try {
-      await axios.post(url, {}, {
+      await axiosInstance.post(url, {}, {
         headers: { 'Authorization': `Bearer ${accessToken}` },
       });
       // 상태를 업데이트하여 UI에 반영
@@ -33,7 +36,7 @@ const WhoToFollow = () => {
   useEffect(() => {
     const fetchSuggestedUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/recommend-users/', {
+        const response = await axiosInstance.get('http://localhost:8000/api/recommend-users/', {
           headers: { 'Authorization': `Bearer ${accessToken}` },
         });
         // 서버에서 isFollowing 정보를 받아온다고 가정하고 설정합니다.
@@ -51,7 +54,7 @@ const WhoToFollow = () => {
 
   return (
     <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper', textAlign: "center" }}>
-      <Typography sx={{ mt: 4, mb: 2 }} variant="h6" component="div">
+      <Typography sx={{ mt: 4, mb: 2 }} variant="h5" component="div">
         Who to follow
       </Typography>
       <List dense={true}>

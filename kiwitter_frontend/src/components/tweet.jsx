@@ -5,6 +5,18 @@ import CommentsSection from './commentSection'; // 이 컴포넌트는 트윗의
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { CommonCard } from '../styles/theme';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+import Slider from 'react-slick';
+
+// Slider settings
+const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+};
 
 
 function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
@@ -14,6 +26,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
     const [showComments, setShowComments] = useState(false);
     const [showCommentInput, setShowCommentInput] = useState(false);
     const [newComment, setNewComment] = useState("");
+    const [commentsCount, setCommentsCount] = useState(0);
     const [isLiked, setIsLiked] = useState(tweet.isLiked);
     const [likesCount, setLikesCount] = useState(tweet.likes.length);
     const [isBookmarked, setIsBookmarked] = useState(tweet.isBookmarked);
@@ -41,28 +54,16 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
     // 편집 저장 처리
     const handleSaveEdit = async () => {
         try {
-            // 트윗 수정 API 호출
             const response = await axios.patch(`http://localhost:8000/tweets/${tweet.id}/`, {
                 content: editContent
             }, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
     
-            // 편집 모드 종료
             setIsEditing(false);
-    
-            // 수정된 트윗 데이터를 상위 컴포넌트에 반영하기 위한 호출
-            // 이 부분은 예시로 refreshTweets() 함수를 호출하는 것입니다.
-            // 실제 구현에서는 수정된 트윗 데이터를 직접 관리할 수도 있습니다.
             refreshTweets();
-    
-            // 선택적으로, 수정된 트윗 내용을 직접 로컬 상태에 반영할 수도 있습니다.
-            // 이를 위해서는 상위 컴포넌트에서 현재 트윗의 상태를 관리하는 로직이 필요합니다.
-            // 예: onTweetUpdate(tweet.id, response.data);
-    
         } catch (error) {
             console.error('트윗 수정 중 오류 발생:', error);
-            // 에러 처리 로직 추가 (예: 사용자에게 에러 메시지 표시)
         }
     };
 
@@ -71,13 +72,12 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
             await axios.delete(`http://localhost:8000/tweets/${tweet.id}/`, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
-            refreshTweets(); // 트윗 삭제 후 목록 새로고침
+            refreshTweets();
         } catch (error) {
             console.error('트윗 삭제 중 오류 발생:', error);
         }
     };
 
-    // 댓글 달기 기능 구현
     const handleCommentSubmit = async (e) => {
         e.preventDefault();
         if (!newComment.trim()) return;
@@ -94,7 +94,6 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
         }
     };
 
-    // 좋아요 수를 불러오는 함수
     const fetchLikesCount = async () => {
         try {
             const response = await axios.get(`http://localhost:8000/api/tweets/${tweet.id}/likes/count/`, {
@@ -106,25 +105,20 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
         }
     };
 
-    // 좋아요 토글
     const handleLike = async () => {
         try {
             await axios.post(`http://localhost:8000/api/tweets/${tweet.id}/toggle_like/`, {}, {
                 headers: { 'Authorization': `Bearer ${accessToken}` }
             });
-            setIsLiked(!isLiked); // 상태 토글
+            setIsLiked(!isLiked);
             fetchLikesCount();
-            refreshTweets(); // 트윗 목록 새로고침
+            refreshTweets();
         } catch (error) {
             console.error('좋아요 처리 중 오류 발생:', error);
         }
     };
 
-    useEffect(() => {
-        fetchLikesCount(); // 컴포넌트 마운트 시 좋아요 수 불러오기
-    }, [tweet.id]);
-
-    // 북마크 토글
+    
     const handleBookmark = async () => {
         try {
             await axios.post(`http://localhost:8000/api/tweets/${tweet.id}/toggle_bookmark/`, {}, {
@@ -132,13 +126,12 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
             });
             setIsBookmarked(!isBookmarked);
             onBookmarkToggle && onBookmarkToggle(tweet.id);
-            refreshTweets(); // 트윗 목록 새로고침
+            refreshTweets(); 
         } catch (error) {
             console.error('북마크 처리 중 오류 발생:', error);
         }
     };
 
-    // 팔로우/언팔로우 토글
     const handleFollowToggle = async () => {
         console.log("tweet", tweet)
         const url = isFollowing ? `http://localhost:8000/api/unfollow/${tweet.author.id}/` : `http://localhost:8000/api/follow/${tweet.author.id}/`;
@@ -157,15 +150,18 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
         // tweet.imageUrl를 tweet 객체 내의 이미지 URL을 가리키는 실제 속성명으로 변경해야 할 수 있습니다.
         if (tweet.images && tweet.images.length > 0) {
             return (
-                <Box sx={{ my: 2, display: 'flex', justifyContent: 'center'}}>
+                <Box sx={{ my: 2, mb: 4 }}>
+                <Slider {...settings}>
                     {tweet.images.map((image, index) => (
-                    <img 
-                        key={index} 
-                        src={`${image.image}`}
-                        alt={`Tweet ${index}`} 
-                        style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px' }} />
-                ))}
-                </Box>
+                        <Box key={index} sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <img 
+                                src={`${image.image}`}
+                                alt={`Tweet ${index}`} 
+                                style={{ maxWidth: '100%', height: 'auto', borderRadius: '4px',  margin: 'auto' }} />
+                        </Box>
+                    ))}
+                </Slider>
+            </Box>
             );
         }
     };
@@ -197,7 +193,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
         setShowComments(!showComments);
     };
 
-    const [commentsCount, setCommentsCount] = useState(0);
+    
 
     // API에서 댓글 개수를 가져오는 함수
     const fetchCommentsCount = async () => {
@@ -205,7 +201,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
             const response = await axios.get(`http://localhost:8000/tweets/${tweet.id}/comments-count/`, {
                 headers: { 'Authorization': `Bearer ${accessToken}` },
             });
-            setCommentsCount(response.data.comments_count); // 가정: API 응답이 { count: 댓글 개수 } 형태라고 가정
+            setCommentsCount(response.data.comments_count);
         } catch (error) {
             console.error('댓글 개수를 가져오는 중 오류 발생:', error);
         }
@@ -216,13 +212,15 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
     };
 
     useEffect(() => {
+    }, [showComments, tweet.id]); // 댓글 보기 상태 변경 시 댓글 목록 갱신
+
+    useEffect(() => {
         fetchCommentsCount();
     }, [tweet.id]); // tweet.id가 변경될 때마다 댓글 개수를 가져옴
 
-
     useEffect(() => {
-        // 댓글 목록 초기 로딩 로직은 유지
-    }, [showComments, tweet.id]); // 댓글 보기 상태 변경 시 댓글 목록 갱신
+        fetchLikesCount(); // 컴포넌트 마운트 시 좋아요 수 불러오기
+    }, [tweet.id]);
 
     useEffect(() => {
         // 좋아요 상태를 가져오는 함수
@@ -232,7 +230,6 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
                 const response = await axios.get(`http://localhost:8000/api/tweets/${tweet.id}/is_liked/`, {
                     headers: { 'Authorization': `Bearer ${accessToken}` },
                 });
-                // response.data.is_liked 대신 올바른 필드명으로 수정
                 setIsLiked(response.data.is_liked);
             } catch (error) {
                 console.error('좋아요 상태 가져오기 실패:', error);
@@ -246,7 +243,6 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
                 const response = await axios.get(`http://localhost:8000/api/tweets/${tweet.id}/is_bookmarked/`, {
                     headers: { 'Authorization': `Bearer ${accessToken}` },
                 });
-                // response.data.is_bookmarked 대신 올바른 필드명으로 수정
                 setIsBookmarked(response.data.is_bookmarked);
             } catch (error) {
                 console.error('북마크 상태 가져오기 실패:', error);
@@ -258,7 +254,6 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
                 const response = await axios.get(`http://localhost:8000/api/users/${tweet.author.id}/is_following/`, {
                     headers: { 'Authorization': `Bearer ${accessToken}` },
                 });
-                // response.data.is_bookmarked 대신 올바른 필드명으로 수정
                 setIsFollowing(response.data.is_following);
             } catch (error) {
                 console.error('팔로우 상태 가져오기 실패:', error);
@@ -293,12 +288,11 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
                     />
                 ) : (
                     <>
-                        <Typography>{parseHashtags(tweet.content)}</Typography>
+                        <Typography sx={{mt: 2}}>{parseHashtags(tweet.content)}</Typography>
                         {renderTweetImage()} 
                     </>
                     
                 )}
-                <Typography variant="body2">좋아요 {likesCount}명</Typography>
                 <TweetActions
                     currentUser={currentUser}
                     tweetAuthor={tweet.author.username}
@@ -311,12 +305,13 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
                     isBookmarked={isBookmarked}
                     isFollowing={isFollowing}
                     onLike={handleLike}
+                    likeCounts={likesCount}
                     onBookmark={handleBookmark}
                     onFollowToggle={handleFollowToggle}
                 />
                 <Box>
                     <Button onClick={toggleComments}>
-                        {showComments ? `댓글 접기` : `댓글(${commentsCount}) 펴기`}
+                        {showComments ? `댓글 접기` : `댓글(${commentsCount})`}
                     </Button>
                     {showComments && (
                         <Box>

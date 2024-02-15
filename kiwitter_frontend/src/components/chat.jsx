@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/chat.css';
 import axios from 'axios'; // axios 라이브러리 임포트
 import { 
@@ -14,6 +14,8 @@ import {
 } from '@mui/material';
 // import DeleteIcon from '@mui/icons-material/Delete';
 
+import { useAxiosWithJwtInterceptor } from './jwtinterceptor';
+
 export default function Chat() {
     const [selectedChatId, setSelectedChatId] = useState(null);
     const [conversations, setConversations] = useState([]);
@@ -25,6 +27,31 @@ export default function Chat() {
     const [ws, setWs] = useState(null);
     const accessToken = localStorage.getItem("access token");
     const username = localStorage.getItem("username");
+    const axioInstance = useAxiosWithJwtInterceptor();
+    const messagesEndRef = useRef(null);
+
+    const previousMessagesLength = useRef(conversations[selectedChatId]?.messages.length);
+    // 스크롤을 최하단으로 이동하는 함수
+    const scrollToBottom = () => {
+      if (messagesEndRef.current && messagesEndRef.current.scrollHeight > messagesEndRef.current.clientHeight) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+
+    useEffect(() => {
+      // 메시지 목록에 변화가 있는 경우에만 스크롤을 이동 (기존 메시지 수와 비교)
+    const currentMessages = conversations[selectedChatId]?.messages;
+    if (currentMessages && currentMessages.length && messagesEndRef.current) {
+      const previousScrollHeight = messagesEndRef.current.scrollHeight;
+      // 메시지가 추가될 때 이전 스크롤 높이와 비교하여 스크롤 이동
+      const messageAdded = currentMessages.length > previousMessagesLength.current;
+      if (messageAdded && previousScrollHeight !== messagesEndRef.current.scrollHeight) {
+        scrollToBottom();
+      }
+      // 현재 메시지 수를 기록 (추가된 부분)
+      previousMessagesLength.current = currentMessages.length;
+    }
+  }, [conversations[selectedChatId]?.messages.length]);
 
     // 새 대화방을 추가하는 부분 스타일
   const newConversationSectionStyle = {
@@ -44,7 +71,7 @@ export default function Chat() {
     width: '70%',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
   };
 
   const chatMessagesStyle = {
@@ -65,7 +92,7 @@ export default function Chat() {
     const fetchConversations = async () => {
       if (username) {
         try {
-          const response = await axios.get('http://127.0.0.1:8000/api/conversations/', {
+          const response = await axioInstance.get('http://127.0.0.1:8000/api/conversations/', {
             headers: { 'Authorization': `Bearer ${accessToken}` },
           });
           const updatedConversations = response.data.conversations.map(conv => ({
@@ -87,7 +114,7 @@ export default function Chat() {
   // 선택된 대화방의 메시지 가져오기
   const fetchMessages = async (chatId) => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/api/conversations/${chatId}/messages/`, {
+      const response = await axioInstance.get(`http://127.0.0.1:8000/api/conversations/${chatId}/messages/`, {
         headers: { 'Authorization': `Bearer ${accessToken}` },
       });
       // 선택된 대화방의 메시지만 업데이트
@@ -130,6 +157,7 @@ export default function Chat() {
             return conv;
           }).sort((a, b) => new Date(b.last_message_at) - new Date(a.last_message_at)); // 다시 정렬
         });
+        scrollToBottom();
       };
       setWs(newWs);
 
@@ -148,7 +176,7 @@ export default function Chat() {
       });
       ws.send(messageData);
       setMessage('');
-      // 로컬에서 즉시 대화 목록 업데이트를 위한 추가 로직은 여기에 포함시키세요
+      scrollToBottom();
     }
   };
 
@@ -164,7 +192,7 @@ export default function Chat() {
     if (participantInput && !newParticipants.includes(participantInput)) {
       try {
         // Django 로컬 주소와 포트를 추가하여 API 요청
-        const response = await axios.post('http://127.0.0.1:8000/api/check-user-exists/', { username: participantInput }, {
+        const response = await axioInstance.post('http://127.0.0.1:8000/api/check-user-exists/', { username: participantInput }, {
           headers: { 'Authorization': `Bearer ${accessToken}` },
         });
         if (response.data.exists) {
@@ -192,7 +220,7 @@ export default function Chat() {
     if (newParticipants.length > 0) {
       try {
         // const user = JSON.parse(localStorage.getItem('user'));
-        const response = await axios.post(
+        const response = await axioInstance.post(
           'http://127.0.0.1:8000/api/create-conversation/',
           { usernames: [...newParticipants, username] }, // 현재 사용자도 참가자로 추가
           { headers: { 'Authorization': `Bearer ${accessToken}` } }
@@ -220,7 +248,7 @@ export default function Chat() {
   // 대화방 삭제 함수
 const handleDeleteConversation = async (conversationIdToDelete) => {
   try {
-    await axios.delete(`http://127.0.0.1:8000/api/conversations/${conversationIdToDelete}/delete/`, {
+    await axioInstance.delete(`http://127.0.0.1:8000/api/conversations/${conversationIdToDelete}/delete/`, {
       headers: { 'Authorization': `Bearer ${accessToken}` },
     });
     // 대화방 목록에서 삭제된 대화방 제거
@@ -237,7 +265,12 @@ const handleDeleteConversation = async (conversationIdToDelete) => {
 // 유틸리티 함수: 날짜 문자열을 받아서 포맷팅된 날짜를 반환합니다.
 function formatDate(dateStr) {
     const date = new Date(dateStr);
-    return date.toLocaleTimeString();
+    return date.toLocaleTimeString('ko-KR', {
+      timeZone: 'Asia/Seoul',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+  });
   }
 
   // 대화방 목록을 최신 순으로 정렬하여 표시
@@ -270,21 +303,23 @@ return (
           }}
           fullWidth
         />
-        <Button 
-          variant="contained" 
-          onClick={handleAddParticipant}
-          disabled={!participantInput}
-        >
-          참가자 추가
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button 
+            variant="contained" 
+            onClick={handleAddParticipant}
+            disabled={!participantInput}
+          >
+            참가자 추가
+          </Button>
+          <Button variant="contained" onClick={handleCancelLastAddedParticipant}>
+                추가 취소
+          </Button>
+        </Box>
         {newParticipants.length > 0 && (
           <>
             <Typography>추가된 참가자: {newParticipants.join(', ')}</Typography>
-            <Button variant="contained" onClick={handleCreateConversation}>
+            <Button variant="contained" onClick={handleCreateConversation} sx={{ backgroundColor: 'red' }}>
               채팅 시작하기
-            </Button>
-            <Button variant="outlined" onClick={handleCancelLastAddedParticipant}>
-              추가 취소
             </Button>
           </>
         )}
@@ -311,8 +346,8 @@ return (
     <Box sx={chatWindowStyle}>
       <Box sx={chatMessagesStyle}>
         {selectedChatId && conversations.find(conv => conv.conversation_id?.toString() === selectedChatId) ? (
-          conversations.find(conv => conv.conversation_id.toString() === selectedChatId)?.messages?.map((msg, index) => (
-            <Typography key={index}>
+          conversations.find(conv => conv.conversation_id.toString() === selectedChatId)?.messages?.map((msg, index, array) => (
+            <Typography key={index} ref={index === array.length - 1 ? messagesEndRef : null}>
               {`${msg.sender}: ${msg.content} (${formatDate(msg.timestamp)})`}
             </Typography>
           ))
@@ -321,7 +356,7 @@ return (
         )}
       </Box>
       {selectedChatId && conversations.find(conv => conv.conversation_id?.toString() === selectedChatId) && (
-        <Box sx={{ ...messageInputStyle, position: 'sticky', bottom: 0, backgroundColor: 'background.paper' }}> {/* 여기에 스타일 수정 */}
+        <Box sx={{ ...messageInputStyle, position: 'sticky', bottom: '30px', backgroundColor: 'background.paper' }}> {/* 여기에 스타일 수정 */}
           <TextField
             label="메시지를 입력하세요"
             variant="outlined"
