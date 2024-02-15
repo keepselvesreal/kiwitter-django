@@ -8,7 +8,7 @@ import theme from './theme'; // 위에서 생성한 테마를 임포트
 import { UserContextProvider } from './components/UserContext';
 // import { AuthServiceProvider } from './components/AuthContext';
 import ProtectedRoute from './components/protected-route';
-import Register from './pages/register';
+import SignUpForm from './components/SignUpForm';
 import Login from './pages/login';
 import Layout from "./components/layout";
 import Home from "./components/home";
@@ -60,7 +60,7 @@ const router = createBrowserRouter([
   },
   {
     path:"/register",
-    element: <Register />
+    element: <SignUpForm />
   },
   { 
     path: "/hashtags/:hashtag", 

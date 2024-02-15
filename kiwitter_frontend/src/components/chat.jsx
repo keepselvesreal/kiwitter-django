@@ -320,29 +320,31 @@ return (
           <Typography>대화를 선택해주세요.</Typography>
         )}
       </Box>
-      <Box sx={messageInputStyle}>
-        <TextField
-          label="메시지를 입력하세요"
-          variant="outlined"
-          size="small"
-          fullWidth
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleSendMessage();
-            }
-          }}
-        />
-        <Button 
-          variant="contained" 
-          onClick={handleSendMessage}
-          sx={{ ml: 1 }}
-          disabled={!message}
-        >
-          전송
-        </Button>
-      </Box>
+      {selectedChatId && conversations.find(conv => conv.conversation_id?.toString() === selectedChatId) && (
+        <Box sx={{ ...messageInputStyle, position: 'sticky', bottom: 0, backgroundColor: 'background.paper' }}> {/* 여기에 스타일 수정 */}
+          <TextField
+            label="메시지를 입력하세요"
+            variant="outlined"
+            size="small"
+            fullWidth
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSendMessage();
+              }
+            }}
+          />
+          <Button 
+            variant="contained" 
+            onClick={handleSendMessage}
+            sx={{ ml: 1 }}
+            disabled={!message}
+          >
+            전송
+          </Button>
+        </Box>
+      )}
     </Box>
   </Box>
 );

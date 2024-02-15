@@ -37,7 +37,7 @@ const Layout = () => {
                     <IconButton edge="start" color="inherit" aria-label="logo">
                         <img src={localImage} alt="Logo" style={{ width: '50px', height: '50px' }} />
                     </IconButton>
-                    <Typography variant="h6" noWrap sx={{ color: '#8CC63F' }}> {/* noWrap prevents text from wrapping */}
+                    <Typography variant="h5" noWrap sx={{ color: '#8CC63F' }}> {/* noWrap prevents text from wrapping */}
                         Kiwitter
                     </Typography>
                 </Toolbar>
@@ -84,7 +84,14 @@ const Layout = () => {
                     display: { xs: 'none', sm: 'block' }, // Displayed as block on sm breakpoint and up
                 }}
             >
+            <Box // WhoToFollow positioned as a sidebar
+            sx={{
+                position: 'sticky', // Sticky position
+                top: 0, // Stick to the top
+            }}
+        >
                 <WhoToFollow />
+            </Box>
             </Box>
         </Box>
     );

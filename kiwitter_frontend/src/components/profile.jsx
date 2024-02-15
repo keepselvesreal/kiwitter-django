@@ -6,6 +6,22 @@ import Tweet from './tweet';
 
 const itemsPerPage = 3; // 한 페이지에 표시할 항목 수
 
+// 스크롤바를 숨기는 스타일
+const hiddenScrollbarStyle = {
+  '&::-webkit-scrollbar': { display: 'none' },
+  scrollbarWidth: 'none', // Firefox용
+};
+
+const sectionBoxStyle = {
+  p: 2,
+  mt: 2,
+  width: '80%', // 섹션의 너비를 넉넉하게 설정
+  height: '300px', // 섹션의 높이를 고정
+  overflowY: 'scroll', // 섹션 내용이 넘칠 경우 스크롤 가능
+  // ...hiddenScrollbarStyle,
+};
+
+
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -18,12 +34,6 @@ const Profile = () => {
   const [currentPage, setCurrentPage] = useState({ tweets: 1, comments: 1, likedTweets: 1 });
   const accessToken = localStorage.getItem("access token");
   const userId = localStorage.getItem("user_id");
-
-  // 스크롤바를 숨기는 스타일
-const hiddenScrollbarStyle = {
-  '&::-webkit-scrollbar': { display: 'none' },
-  scrollbarWidth: 'none', // Firefox용
-};
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,6 +95,7 @@ const hiddenScrollbarStyle = {
 
   // 페이지 번호를 생성하는 함수
   const renderPageNumbers = (items, section) => {
+    if (items.length === 0) return null; // 항목이 없으면 페이지 번호를 렌더링하지 않음
     const pageCount = Math.ceil(items.length / itemsPerPage);
     return Array.from({ length: pageCount }, (_, i) => (
       <Button key={i} onClick={() => changePage(section, i + 1)} variant={currentPage[section] === i + 1 ? "contained" : "text"}>
@@ -92,6 +103,12 @@ const hiddenScrollbarStyle = {
       </Button>
     ));
   };
+
+  const commentsPerPage = 5; // 예를 들어, 한 페이지에 표시할 댓글의 수를 5로 설정합니다.
+
+  // 댓글 페이지 별로 항목을 계산하는 함수입니다.
+  const getCommentsPageItems = (items, page) => items.slice((page - 1) * commentsPerPage, page * commentsPerPage);
+  
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, marginTop: 5 }}>
@@ -139,7 +156,7 @@ const hiddenScrollbarStyle = {
       )}
       {/* Following Users Section */}
       <Typography variant="h5" gutterBottom sx={{ mt: 3, mb: 0, textAlign: 'center', fontWeight: 'bold' }}>팔로우 중인 사용자</Typography>
-      <Box component={Paper} elevation={4} sx={{ p: 2, mt: 2, width: '100%', maxWidth: 600, overflowX: 'auto' }}>
+      <Box component={Paper} elevation={4} sx={{ p: 2, mt: 2, width: '80%', overflowX: 'auto', ...hiddenScrollbarStyle }}>
         <Box sx={{ display: 'flex', gap: 2 }}>
           {user.following_ids?.map((followingId, index) => (
             <Box key={index} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 100 }}>
@@ -156,19 +173,27 @@ const hiddenScrollbarStyle = {
           <Typography variant="h5" gutterBottom sx={{ mt: 5, mb: 0, textAlign: 'center', fontWeight: 'bold' }}>
               {section === 'tweets' ? '작성 트윗' : section === 'comments' ? '작성 댓글' : '좋아요 누른 트윗'}
           </Typography>
-          <Box component={Paper} elevation={4} sx={{ p: 2, mt: 2, width: '100%', maxWidth: 600, overflowY: 'scroll', maxHeight: 300, ...hiddenScrollbarStyle }}>
+          <Box component={Paper} elevation={4} sx={sectionBoxStyle}>
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}> {/* 트윗 가운데 정렬을 위한 수정 */}
-              {section === 'tweets' && getPageItems(tweets, currentPage.tweets).map(tweet => <Tweet key={tweet.id} tweet={tweet} />)}
+              {section === 'tweets' && getPageItems(tweets, currentPage.tweets).map(tweet => (
+                <Box key={tweet.id} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                  <Tweet tweet={tweet} />
+                </Box>
+              ))}
               {section === 'comments' && (
                 <List sx={{ width: '100%' }}>
-                  {getPageItems(comments, currentPage.comments).map(comment => (
+                  {getCommentsPageItems(comments, currentPage.comments).map(comment => (
                     <ListItem key={comment.id} alignItems="flex-start">
                       <ListItemText primary={`댓글: ${comment.content}`} />
                     </ListItem>
                   ))}
                 </List>
               )}
-              {section === 'likedTweets' && getPageItems(likedTweets, currentPage.likedTweets).map(likedTweet => <Tweet key={likedTweet.id} tweet={likedTweet} />)}
+              {section === 'likedTweets' && getPageItems(likedTweets, currentPage.likedTweets).map(likedTweet => (
+                <Box key={likedTweet.id} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                  <Tweet tweet={likedTweet} />
+                </Box>
+              ))}
             </Box>
           </Box>
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 2 }}>

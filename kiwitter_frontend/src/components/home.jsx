@@ -47,20 +47,9 @@ export default function Home() {
     return (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <TweetForm addTweet={addTweet} />
-                <Box sx={{ mt: 5 }}>
+                <Box sx={{ mt: 7 }}>
                     <Timeline tweets={tweets} refreshTweets={refreshTweets}/>
                 </Box>
-                {/* 로그아웃 버튼을 우측 상단에 배치 */}
-                <button 
-                    onClick={handleLogout} 
-                    style={{ 
-                        position: 'absolute', 
-                        top: 0, 
-                        right: 0, 
-                        margin: '10px' 
-                    }}>
-                    Logout
-                </button>
             </Box> 
     );
 }

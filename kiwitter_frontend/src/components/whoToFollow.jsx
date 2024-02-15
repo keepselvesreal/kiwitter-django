@@ -50,7 +50,7 @@ const WhoToFollow = () => {
   }, []);
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+    <Box sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper', textAlign: "center" }}>
       <Typography sx={{ mt: 4, mb: 2 }} variant="h6" component="div">
         Who to follow
       </Typography>

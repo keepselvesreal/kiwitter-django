@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Box, TextField, Button, Select, MenuItem, FormControl, InputLabel, Paper } from '@mui/material';
 import { generatePrompt, generateImage } from "./ImageGeneration";
+import CommonCard from '../styles/theme';
 
 
 function TweetForm({ addTweet }) {
@@ -69,7 +70,7 @@ function TweetForm({ addTweet }) {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 3, margin: 'auto', maxWidth: 600, flexGrow: 1 }}>
+    <Paper elevation={3} sx={{ width: '100%', maxWidth: 500, p: 3, flexGrow: 0 }}>
       <form onSubmit={handleSubmit}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
@@ -91,7 +92,15 @@ function TweetForm({ addTweet }) {
           {imagePreviews.map((preview, index) => (
             <Box key={index} sx={{ textAlign: 'center', mt: 2 }}>
               <img src={preview} alt="미리보기" style={{ maxWidth: '100%', height: 'auto' }} />
-              <Button variant="outlined" color="error" size="small" onClick={() => removeImage(index)}>제거</Button>
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                onClick={() => removeImage(index)}
+                sx={{ display: 'block', margin: 'auto', mt: 1 }} // 이미지 바로 아래에 위치하도록 스타일 수정
+              >
+                제거
+              </Button>
             </Box>
           ))}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

@@ -4,6 +4,7 @@ import TweetActions from './tweetActions'; // 이 컴포넌트는 트윗의 액�
 import CommentsSection from './commentSection'; // 이 컴포넌트는 트윗의 댓글 섹션을 관리합니다.
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { CommonCard } from '../styles/theme';
 
 
 function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
@@ -270,7 +271,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
     }, [tweet.id, tweet.author.id,]); 
 
     return (
-        <Card sx={{ marginBottom: 2, width: "60%" }}>
+        <Card sx={{ width: "100%", maxWidth: 500, p: 3, marginBottom: 2}}>
             <CardContent>
                 <Box display="flex" alignItems="center" gap={2}>
                     <Avatar src={tweet.authorProfileImageUrl} alt="Author" onClick={handleAvatarClick} />
