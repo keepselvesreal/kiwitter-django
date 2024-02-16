@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { 
   TextField, 
   Button, 
@@ -8,11 +7,8 @@ import {
   Typography, 
   List, 
   ListItem, 
-  ListItemAvatar, 
   ListItemText, 
-  Divider, 
   Paper,
-  IconButton,
   Stack
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
@@ -20,7 +16,6 @@ import { LoadingButton } from '@mui/lab';
 import Tweet from './tweet';
 import { useAxiosWithJwtInterceptor } from './jwtinterceptor';
 
-const itemsPerPage = 3; // 한 페이지에 표시할 항목 수
 
 // 스크롤바를 숨기는 스타일
 const hiddenScrollbarStyle = {
@@ -43,9 +38,9 @@ const Profile = () => {
   const [editMode, setEditMode] = useState(false);
   const [username, setUsername] = useState('');
   const [shortDescription, setShortDescription] = useState('');
-  const [profileImage, setProfileImage] = useState(null);
   // 프로필 이미지 미리보기 URL 상태
   const [preview, setPreview] = useState('');
+  const [profileImage, setProfileImage] = useState(null);
   const [tweets, setTweets] = useState([]);
   const [comments, setComments] = useState([]);
   const [likedTweets, setLikedTweets] = useState([]);
@@ -53,6 +48,9 @@ const Profile = () => {
   const accessToken = localStorage.getItem("access token");
   const userId = localStorage.getItem("user_id");
   const axiosInstance = useAxiosWithJwtInterceptor();
+
+  const itemsPerPage = 3; // 한 페이지에 표시할 항목 수
+  const commentsPerPage = 5; // 한 페이지에 표시할 댓글의 수
 
   useEffect(() => {
     const fetchData = async () => {
@@ -80,17 +78,19 @@ const Profile = () => {
     fetchData();
   }, [userId, editMode]);
 
-  useEffect(() => {
-    if (profileImage) {
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type.substr(0, 5) === "image") {
+      setProfileImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
       };
-      reader.readAsDataURL(profileImage);
+      reader.readAsDataURL(file);
     } else {
       setPreview(null);
     }
-  }, [profileImage]);
+  };
 
   const handleSave = async () => {
     const formData = new FormData();
@@ -113,6 +113,18 @@ const Profile = () => {
     }
   };
 
+  useEffect(() => {
+    if (profileImage) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(profileImage);
+    } else {
+      setPreview(null);
+    }
+  }, [profileImage]);
+
   const changePage = (section, pageNumber) => {
     setCurrentPage({ ...currentPage, [section]: pageNumber });
   };
@@ -123,6 +135,9 @@ const Profile = () => {
 
   // 페이지 별로 항목을 계산하는 함수
   const getPageItems = (items, page) => items.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+
+  // 댓글 페이지 별로 항목을 계산하는 함수입니다.
+  const getCommentsPageItems = (items, page) => items.slice((page - 1) * commentsPerPage, page * commentsPerPage);
 
   // 페이지 번호를 생성하는 함수
   const renderPageNumbers = (items, section, perPage) => {
@@ -137,26 +152,8 @@ const Profile = () => {
         {i + 1}
       </Button>
     ));
-  };
-
-  const commentsPerPage = 5; // 예를 들어, 한 페이지에 표시할 댓글의 수를 5로 설정합니다.
-
-  // 댓글 페이지 별로 항목을 계산하는 함수입니다.
-  const getCommentsPageItems = (items, page) => items.slice((page - 1) * commentsPerPage, page * commentsPerPage);
+  };  
   
-  const handleImageChange = (event) => {
-    const file = event.target.files[0];
-    if (file && file.type.substr(0, 5) === "image") {
-      setProfileImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setPreview(null);
-    }
-  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, marginTop: 5 }}>

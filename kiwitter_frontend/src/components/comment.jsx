@@ -23,6 +23,16 @@ function Comment({
     const isAuthor = currentUser === comment.author.username;
     const accessToken = localStorage.getItem("access token");
 
+    const fetchReplies = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/tweets/${tweetId}/comments/${comment.id}/replies/`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` },
+            });
+            setReplies(response.data);
+        } catch (error) {
+            console.error('Error fetching replies', error);
+        }
+    };
     useEffect(() => {
         if (comment.id) {
             fetchReplies();
@@ -34,17 +44,7 @@ function Comment({
         fetchReplies();
     }, [comment]);
 
-    const fetchReplies = async () => {
-        try {
-            const response = await axios.get(`${API_BASE_URL}/tweets/${tweetId}/comments/${comment.id}/replies/`, {
-                headers: { 'Authorization': `Bearer ${accessToken}` },
-            });
-            setReplies(response.data);
-        } catch (error) {
-            console.error('Error fetching replies', error);
-        }
-    };
-
+    
     const handleAction = async (action) => {
         let url;
         if (action === 'edit' || action === 'delete') {

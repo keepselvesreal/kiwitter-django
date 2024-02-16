@@ -14,9 +14,9 @@ function TweetActions({
     onSaveEdit, 
     onDelete, 
     isEditing,
-    currentUser,
     tweetAuthor
 }) {
+    const currentUser = localStorage.getItem("username");
     const showEditDeleteButtons = currentUser === tweetAuthor;
     const showFollowButton = currentUser !== tweetAuthor;
 

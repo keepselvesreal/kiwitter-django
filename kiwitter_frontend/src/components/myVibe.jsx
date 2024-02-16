@@ -21,15 +21,15 @@ function MyVibe() {
             console.error('트윗 로딩 중 오류 발생:', error);
         }
     };
+    useEffect(() => {
+        fetchMyVibeTweets();
+    }, []);
 
     // 트윗 컴포넌트에 전달할 새로고침 함수
     const refreshMyVibeTweets = () => {
         fetchMyVibeTweets();
     };
-
-    useEffect(() => {
-        fetchMyVibeTweets();
-    }, []);
+    
 
     return (
         <div>

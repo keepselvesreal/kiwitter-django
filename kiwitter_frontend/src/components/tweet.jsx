@@ -26,125 +26,18 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
     const [showComments, setShowComments] = useState(false);
     const [showCommentInput, setShowCommentInput] = useState(false);
     const [newComment, setNewComment] = useState("");
+    // 댓글 추가 성공 후 CommentsSection의 댓글 목록을 업데이트하기 위한 상태 변수
+    const [commentsUpdated, setCommentsUpdated] = useState(false);
     const [commentsCount, setCommentsCount] = useState(0);
     const [isLiked, setIsLiked] = useState(tweet.isLiked);
     const [likesCount, setLikesCount] = useState(tweet.likes.length);
     const [isBookmarked, setIsBookmarked] = useState(tweet.isBookmarked);
     const [isFollowing, setIsFollowing] = useState(tweet.isFollowing);
-    const [anchorEl, setAnchorEl] = useState(null);
-    const open = Boolean(anchorEl);
     const accessToken = localStorage.getItem("access token");
     const currentUser = localStorage.getItem("username");
     const navigate = useNavigate();
-    // 댓글 추가 성공 후 CommentsSection의 댓글 목록을 업데이트하기 위한 상태 변수 추가
-    const [commentsUpdated, setCommentsUpdated] = useState(false);
 
-    // 편집 모드 진입 처리
-    const handleEditClick = () => setIsEditing(true);
-
-    // 편집 취소 처리
-    const handleCancelEdit = () => {
-        setIsEditing(false);
-        setEditContent(tweet.content); // 편집 내용을 원래대로 리셋
-    };
-
-    // TextField 내용 업데이트 처리
-    const handleContentChange = (e) => setEditContent(e.target.value);
-
-    // 편집 저장 처리
-    const handleSaveEdit = async () => {
-        try {
-            const response = await axios.patch(`http://localhost:8000/tweets/${tweet.id}/`, {
-                content: editContent
-            }, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-    
-            setIsEditing(false);
-            refreshTweets();
-        } catch (error) {
-            console.error('트윗 수정 중 오류 발생:', error);
-        }
-    };
-
-    const handleTweetDelete = async () => {
-        try {
-            await axios.delete(`http://localhost:8000/tweets/${tweet.id}/`, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            refreshTweets();
-        } catch (error) {
-            console.error('트윗 삭제 중 오류 발생:', error);
-        }
-    };
-
-    const handleCommentSubmit = async (e) => {
-        e.preventDefault();
-        if (!newComment.trim()) return;
-        try {
-            await axios.post(`http://localhost:8000/tweets/${tweet.id}/comments/`, { content: newComment }, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            setNewComment("");
-            setShowCommentInput(false);
-            // refreshTweets(); // 댓글 추가 후 목록 새로고침
-            setCommentsUpdated(!commentsUpdated); // 댓글 추가 후 CommentsSection의 댓글 목록 업데이트 트리거
-        } catch (error) {
-            console.error('댓글 달기 중 오류:', error);
-        }
-    };
-
-    const fetchLikesCount = async () => {
-        try {
-            const response = await axios.get(`http://localhost:8000/api/tweets/${tweet.id}/likes/count/`, {
-                headers: { 'Authorization': `Bearer ${accessToken}` },
-            });
-            setLikesCount(response.data.likes_count);
-        } catch (error) {
-            console.error('Error fetching likes count', error);
-        }
-    };
-
-    const handleLike = async () => {
-        try {
-            await axios.post(`http://localhost:8000/api/tweets/${tweet.id}/toggle_like/`, {}, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            setIsLiked(!isLiked);
-            fetchLikesCount();
-            refreshTweets();
-        } catch (error) {
-            console.error('좋아요 처리 중 오류 발생:', error);
-        }
-    };
-
-    
-    const handleBookmark = async () => {
-        try {
-            await axios.post(`http://localhost:8000/api/tweets/${tweet.id}/toggle_bookmark/`, {}, {
-                headers: { 'Authorization': `Bearer ${accessToken}` }
-            });
-            setIsBookmarked(!isBookmarked);
-            onBookmarkToggle && onBookmarkToggle(tweet.id);
-            refreshTweets(); 
-        } catch (error) {
-            console.error('북마크 처리 중 오류 발생:', error);
-        }
-    };
-
-    const handleFollowToggle = async () => {
-        console.log("tweet", tweet)
-        const url = isFollowing ? `http://localhost:8000/api/unfollow/${tweet.author.id}/` : `http://localhost:8000/api/follow/${tweet.author.id}/`;
-        try {
-            await axios.post(url, {}, { headers: { 'Authorization': `Bearer ${accessToken}` }});
-            setIsFollowing(!isFollowing);
-            refreshTweets(); // 트윗 목록 새로고침
-        } catch (error) {
-            console.error(tweet.isFollowing ? '언팔로우 처리 중 오류:' : '팔로우 처리 중 오류:', error);
-        }
-    };
-
-    // 트윗에 이미지 URL이 있을 경우 이미지를 렌더링하기 위한 조건부 렌더링 로직 추가
+    // 트윗에 이미지 URL이 있을 경우 이미지를 렌더링하기 위한 조건부 렌더링 로직
     const renderTweetImage = () => {
         // 트윗 객체 내의 이미지 URL이 있는 경우에만 이미지 태그를 렌더링합니다.
         // tweet.imageUrl를 tweet 객체 내의 이미지 URL을 가리키는 실제 속성명으로 변경해야 할 수 있습니다.
@@ -188,12 +81,67 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
         });
     };
 
+    // 편집 모드 진입 처리
+    const handleEditClick = () => setIsEditing(true);
+
+    // 편집 취소 처리
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        setEditContent(tweet.content); // 편집 내용을 원래대로 리셋
+    };
+
+    // TextField 내용 업데이트 처리
+    const handleContentChange = (e) => setEditContent(e.target.value);
+
+    // 편집 저장 처리
+    const handleSaveEdit = async () => {
+        try {
+            const response = await axios.patch(`http://localhost:8000/tweets/${tweet.id}/`, {
+                content: editContent
+            }, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+    
+            setIsEditing(false);
+            refreshTweets();
+        } catch (error) {
+            console.error('트윗 수정 중 오류 발생:', error);
+        }
+    };
+
+    const handleTweetDelete = async () => {
+        try {
+            await axios.delete(`http://localhost:8000/tweets/${tweet.id}/`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            refreshTweets();
+        } catch (error) {
+            console.error('트윗 삭제 중 오류 발생:', error);
+        }
+    };
+
     // 댓글 보기/숨기기 토글 함수
     const toggleComments = () => {
         setShowComments(!showComments);
     };
+    useEffect(() => {
+    }, [showComments, tweet.id]); // 댓글 보기 상태 변경 시 댓글 목록 갱신
 
-    
+    const handleCommentSubmit = async (e) => {
+        e.preventDefault();
+        if (!newComment.trim()) return;
+        try {
+            await axios.post(`http://localhost:8000/tweets/${tweet.id}/comments/`, { content: newComment }, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            setNewComment("");
+            setShowCommentInput(false);
+            // refreshTweets(); // 댓글 추가 후 목록 새로고침
+            setCommentsUpdated(!commentsUpdated); // 댓글 추가 후 CommentsSection의 댓글 목록 업데이트 트리거
+        } catch (error) {
+            console.error('댓글 달기 중 오류:', error);
+        }
+    };
 
     // API에서 댓글 개수를 가져오는 함수
     const fetchCommentsCount = async () => {
@@ -206,21 +154,66 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
             console.error('댓글 개수를 가져오는 중 오류 발생:', error);
         }
     };
-
-    const handleAvatarClick = () => {
-        navigate('/profile');
-    };
-
-    useEffect(() => {
-    }, [showComments, tweet.id]); // 댓글 보기 상태 변경 시 댓글 목록 갱신
-
     useEffect(() => {
         fetchCommentsCount();
     }, [tweet.id]); // tweet.id가 변경될 때마다 댓글 개수를 가져옴
 
+    const fetchLikesCount = async () => {
+        try {
+            const response = await axios.get(`http://localhost:8000/api/tweets/${tweet.id}/likes/count/`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` },
+            });
+            setLikesCount(response.data.likes_count);
+        } catch (error) {
+            console.error('Error fetching likes count', error);
+        }
+    };
     useEffect(() => {
         fetchLikesCount(); // 컴포넌트 마운트 시 좋아요 수 불러오기
     }, [tweet.id]);
+
+
+    const handleLike = async () => {
+        try {
+            await axios.post(`http://localhost:8000/api/tweets/${tweet.id}/toggle_like/`, {}, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            setIsLiked(!isLiked);
+            fetchLikesCount();
+            refreshTweets();
+        } catch (error) {
+            console.error('좋아요 처리 중 오류 발생:', error);
+        }
+    };
+    
+    const handleBookmark = async () => {
+        try {
+            await axios.post(`http://localhost:8000/api/tweets/${tweet.id}/toggle_bookmark/`, {}, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            setIsBookmarked(!isBookmarked);
+            onBookmarkToggle && onBookmarkToggle(tweet.id);
+            refreshTweets(); 
+        } catch (error) {
+            console.error('북마크 처리 중 오류 발생:', error);
+        }
+    };
+
+    const handleFollowToggle = async () => {
+        console.log("tweet", tweet)
+        const url = isFollowing ? `http://localhost:8000/api/unfollow/${tweet.author.id}/` : `http://localhost:8000/api/follow/${tweet.author.id}/`;
+        try {
+            await axios.post(url, {}, { headers: { 'Authorization': `Bearer ${accessToken}` }});
+            setIsFollowing(!isFollowing);
+            refreshTweets(); // 트윗 목록 새로고침
+        } catch (error) {
+            console.error(tweet.isFollowing ? '언팔로우 처리 중 오류:' : '팔로우 처리 중 오류:', error);
+        }
+    };
+
+    const handleAvatarClick = () => {
+        navigate('/profile');
+    };
 
     useEffect(() => {
         // 좋아요 상태를 가져오는 함수
@@ -265,6 +258,7 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
         fetchFollowingStatus();
     }, [tweet.id, tweet.author.id,]); 
 
+
     return (
         <Card sx={{ width: "100%", maxWidth: 500, p: 3, marginBottom: 2}}>
             <CardContent>
@@ -294,7 +288,6 @@ function Tweet({ tweet, refreshTweets, onBookmarkToggle, onTweetUpdate }) {
                     
                 )}
                 <TweetActions
-                    currentUser={currentUser}
                     tweetAuthor={tweet.author.username}
                     onEdit={handleEditClick}
                     onCancelEdit={handleCancelEdit}

@@ -6,10 +6,6 @@ function CommentsSection({ tweetId, commentsUpdated }) {
     const [comments, setComments] = useState([]);
     const accessToken = localStorage.getItem("access token");
 
-    useEffect(() => {
-        fetchComments();
-    }, [tweetId, commentsUpdated]);
-
     const fetchComments = async () => {
         try {
             const response = await axios.get(`http://localhost:8000/tweets/${tweetId}/comments/`, {
@@ -20,6 +16,9 @@ function CommentsSection({ tweetId, commentsUpdated }) {
             console.error('댓글 로딩 중 오류:', error);
         }
     };
+    useEffect(() => {
+        fetchComments();
+    }, [tweetId, commentsUpdated]);
 
     const handleCommentUpdated = (updatedComment) => {
         const updatedComments = comments.map(comment => {
@@ -35,10 +34,6 @@ function CommentsSection({ tweetId, commentsUpdated }) {
         // 삭제된 댓글의 ID를 사용하여 comments 상태를 업데이트합니다.
         const updatedComments = comments.filter(comment => comment.id !== deletedCommentId);
         setComments(updatedComments);
-    };
-
-    const handleNewCommentAdded = (newComment) => {
-        setComments(prevComments => [newComment, ...prevComments]);
     };
 
     const handleReplyUpdated = (commentId, updatedReply) => {
@@ -71,6 +66,7 @@ function CommentsSection({ tweetId, commentsUpdated }) {
         setComments(updatedComments);
     };
 
+    
     return (
         <div>
             {comments.map(comment => (

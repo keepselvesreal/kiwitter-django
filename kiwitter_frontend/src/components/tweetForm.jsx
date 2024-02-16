@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Box, TextField, Button, Select, MenuItem, FormControl, InputLabel, Paper } from '@mui/material';
 import { generatePrompt, generateImage } from "./ImageGeneration";
-import CommonCard from '../styles/theme';
 
 
 function TweetForm({ addTweet }) {
@@ -12,14 +11,6 @@ function TweetForm({ addTweet }) {
   const [genre, setGenre] = useState('animation');
   const genres = ['animation', 'Pop Art', 'Minimal Line Art', 'Street Art', 'Splatter Paint', 'cartoon', 'Blog Illustration'];
   const accessToken = localStorage.getItem("access token");
-
-  // 이미지 파일 선택 처리 및 미리보기 생성
-  const handleImageChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    const newImagePreviews = selectedFiles.map(file => URL.createObjectURL(file));
-    setImages(prev => [...prev, ...selectedFiles]);
-    setImagePreviews(prev => [...prev, ...newImagePreviews]);
-  };
 
   // 폼 제출 처리: 새 트윗 게시
   const handleSubmit = async (e) => {
@@ -52,6 +43,14 @@ function TweetForm({ addTweet }) {
     setMessage('');
     setImages([]);
     setImagePreviews([]);
+  };
+
+  // 이미지 파일 선택 처리 및 미리보기 생성
+  const handleImageChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    const newImagePreviews = selectedFiles.map(file => URL.createObjectURL(file));
+    setImages(prev => [...prev, ...selectedFiles]);
+    setImagePreviews(prev => [...prev, ...newImagePreviews]);
   };
 
   // 선택한 이미지 제거

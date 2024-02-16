@@ -52,21 +52,11 @@ export const UserContextProvider = ({ children }) => {
               password,
       }
       );
-      console.log("response: ", response)
-      // const userData = {
-      //   username: response.data.username,
-      //   id: response.data.id, 
-      //   token: response.data.token,
-      // };
-      // localStorage.setItem('user', JSON.stringify(userData));
-      // setUser(userData);
+      // console.log("response: ", response)
       
-      const user_id = response.data.user_id
-      const user_profile_image = response.data.profile_image
-      localStorage.setItem("user_id", user_id)
+      localStorage.setItem("user_id", response.data.user_id)
       localStorage.setItem("isLoggedIn", "true")
-      localStorage.setItem("user_profile_image", user_profile_image)
-      console.log("user_id: ", user_id)
+      localStorage.setItem("user_profile_image", response.data.profile_image)
 
       const {access, refresh} = response.data;
       localStorage.setItem("access token", access)
@@ -113,7 +103,6 @@ export const UserContextProvider = ({ children }) => {
         localStorage.setItem("access token", newAccessToken);
     return newAccessToken;
     } catch (refreshError) {
-      console.error('액세스 토큰 새로고침 오류:', refreshError);
       throw refreshError;
     }
   }

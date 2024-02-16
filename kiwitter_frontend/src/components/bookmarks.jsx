@@ -28,7 +28,6 @@ export default function Bookmarks() {
             console.error('Error fetching bookmarked tweets', error);
         }
     };
-
     useEffect(() => {
         fetchBookmarkedTweets();
     }, []);
@@ -36,6 +35,7 @@ export default function Bookmarks() {
     const handleBookmarkToggle = (tweetId) => {
         setBookmarkedTweets(prevTweets => prevTweets.filter(tweet => tweet.id !== tweetId));
     };
+    
 
     return (
         <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
