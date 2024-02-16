@@ -28,30 +28,22 @@ export default function Chat() {
     const accessToken = localStorage.getItem("access token");
     const username = localStorage.getItem("username");
     const axioInstance = useAxiosWithJwtInterceptor();
-    const messagesEndRef = useRef(null);
 
-    const previousMessagesLength = useRef(conversations[selectedChatId]?.messages.length);
-    // 스크롤을 최하단으로 이동하는 함수
-    const scrollToBottom = () => {
-      if (messagesEndRef.current && messagesEndRef.current.scrollHeight > messagesEndRef.current.clientHeight) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-      }
-    };
+    const messagesContainerRef = useRef(null); // Keep this ref to access the messages container
+  
+  const bottomListRef = useRef(null); // New ref for the dummy div at the end of the messages
 
-    useEffect(() => {
-      // 메시지 목록에 변화가 있는 경우에만 스크롤을 이동 (기존 메시지 수와 비교)
-    const currentMessages = conversations[selectedChatId]?.messages;
-    if (currentMessages && currentMessages.length && messagesEndRef.current) {
-      const previousScrollHeight = messagesEndRef.current.scrollHeight;
-      // 메시지가 추가될 때 이전 스크롤 높이와 비교하여 스크롤 이동
-      const messageAdded = currentMessages.length > previousMessagesLength.current;
-      if (messageAdded && previousScrollHeight !== messagesEndRef.current.scrollHeight) {
-        scrollToBottom();
-      }
-      // 현재 메시지 수를 기록 (추가된 부분)
-      previousMessagesLength.current = currentMessages.length;
-    }
-  }, [conversations[selectedChatId]?.messages.length]);
+  // 새 메시지가 대화 목록에 추가될 때 스크롤을 맨 아래로 이동
+useEffect(() => {
+  const currentMessages = conversations.find(conv => conv.conversation_id?.toString() === selectedChatId)?.messages;
+  if (messagesContainerRef.current && currentMessages && currentMessages.length > 0) {
+    // 스크롤을 맨 아래로 이동
+    messagesContainerRef.current.scrollTo({
+      top: messagesContainerRef.current.scrollHeight,
+      behavior: 'smooth',
+    });
+  }
+}, [conversations, selectedChatId]);
 
     // 새 대화방을 추가하는 부분 스타일
   const newConversationSectionStyle = {
@@ -157,7 +149,6 @@ export default function Chat() {
             return conv;
           }).sort((a, b) => new Date(b.last_message_at) - new Date(a.last_message_at)); // 다시 정렬
         });
-        scrollToBottom();
       };
       setWs(newWs);
 
@@ -176,7 +167,6 @@ export default function Chat() {
       });
       ws.send(messageData);
       setMessage('');
-      scrollToBottom();
     }
   };
 
@@ -344,16 +334,17 @@ return (
     </Paper>
     
     <Box sx={chatWindowStyle}>
-      <Box sx={chatMessagesStyle}>
+      <Box sx={chatMessagesStyle} ref={messagesContainerRef}>
         {selectedChatId && conversations.find(conv => conv.conversation_id?.toString() === selectedChatId) ? (
-          conversations.find(conv => conv.conversation_id.toString() === selectedChatId)?.messages?.map((msg, index, array) => (
-            <Typography key={index} ref={index === array.length - 1 ? messagesEndRef : null}>
+          conversations.find(conv => conv.conversation_id.toString() === selectedChatId)?.messages?.map((msg, index) => (
+            <Typography key={index} >
               {`${msg.sender}: ${msg.content} (${formatDate(msg.timestamp)})`}
             </Typography>
           ))
         ) : (
           <Typography>대화를 선택해주세요.</Typography>
         )}
+        <div ref={bottomListRef} />
       </Box>
       {selectedChatId && conversations.find(conv => conv.conversation_id?.toString() === selectedChatId) && (
         <Box sx={{ ...messageInputStyle, position: 'sticky', bottom: '30px', backgroundColor: 'background.paper' }}> {/* 여기에 스타일 수정 */}
